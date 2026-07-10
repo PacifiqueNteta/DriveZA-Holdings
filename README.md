@@ -59,6 +59,7 @@ driveza-data-platform/
 ├── pipelines/         ← Fabric pipeline JSON definitions
 ├── semantic_model/    ← TMDL files (synced from Fabric)
 └── docs/              ← Setup guide, watermark strategy, star schema
+```
 
 ## Setup Guide
 
