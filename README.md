@@ -52,13 +52,42 @@ multiple source systems into a governed, versioned lakehouse.
 ## Repository Structure
 
 ```text
-driveza-data-platform/
-├── architecture/      ← Diagrams and design decisions
-├── data/              ← Raw CSV files (simulating file drops)
-├── src/               ← DDL scripts, loaders, Fabric notebooks
-├── pipelines/         ← Fabric pipeline JSON definitions
-├── semantic_model/    ← TMDL files (synced from Fabric)
-└── docs/              ← Setup guide, watermark strategy, star schema
+Driveza-holdings-data-platform/
+│
+│
+├── architecture/
+│   ├── architecture_diagram.png
+│   ├── data_flow.md
+│   └── design_decisions.md
+│
+├── data/
+│   │
+│   └── raw-landing/
+│       ├── payments/
+│       │   └── crm_payments.csv
+│       └── hr/
+│           └── hr_staff.csv
+│
+├── src/
+│   ├── sql_server/
+│   │   ├── ddl/
+│   │   │   └── driveza_crm_ddl.sql
+│   │   └── loaders/
+│   │       └── load_sqlserver.py
+│   └── snowflake/
+│       ├── ddl/
+│       │   └── driveza_fleet_ddl.sql
+│       └── loaders/
+│           └── load_snowflake.sql
+│
+├── docs/
+│   ├── setup_guide.md
+│   ├── watermark_strategy.md
+│   ├── star_schema.md
+│   └── source_systems.md
+│
+└── fabric/
+    └── [auto-managed by Fabric Git integration]
 ```
 
 ## Setup Guide
