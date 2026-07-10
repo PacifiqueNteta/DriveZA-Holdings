@@ -1,0 +1,81 @@
+staff_id,first_name,last_name,email,phone,role,branch_id,hire_date,salary_zar,is_active,created_at,source_system
+ST001,Bongani,Jones,staff1@driveza.co.za,0644242033,Regional Manager,BR007,2017-08-20,25383.39,True,2017-08-20T00:00:00,HR_SYSTEM
+ST002,Priya,Nxumalo,staff2@driveza.co.za,0644285248,Fleet Controller,BR027,2023-01-26,37613.79,True,2023-01-26T00:00:00,HR_SYSTEM
+ST003,Sne,Jones,staff3@driveza.co.za,0669085343,Fleet Controller,BR028,2016-08-10,58622.57,True,2016-08-10T00:00:00,HR_SYSTEM
+ST004,Bongani,Patel,staff4@driveza.co.za,0793639409,Branch Manager,BR029,2021-05-28,37156.62,True,2021-05-28T00:00:00,HR_SYSTEM
+ST005,Lindiwe,Cele,staff5@driveza.co.za,0749879097,Regional Manager,BR010,2016-11-18,18438.16,True,2016-11-18T00:00:00,HR_SYSTEM
+ST006,Maria,Moyo,staff6@driveza.co.za,0874328361,Driver,BR026,2018-10-12,36540.78,True,2018-10-12T00:00:00,HR_SYSTEM
+ST007,Duduzile,Mnguni,staff7@driveza.co.za,0731817772,Driver,BR013,2016-05-27,52452.67,True,2016-05-27T00:00:00,HR_SYSTEM
+ST008,Dineo,Radebe,staff8@driveza.co.za,0735056416,IT Support,BR024,2019-11-09,51342.22,True,2019-11-09T00:00:00,HR_SYSTEM
+ST009,Zandile,Majola,staff9@driveza.co.za,0737023684,IT Support,BR009,2015-09-12,17657.57,True,2015-09-12T00:00:00,HR_SYSTEM
+ST010,Palesa,Govender,staff10@driveza.co.za,0822075147,Fleet Controller,BR008,2015-03-30,34475.72,True,2015-03-30T00:00:00,HR_SYSTEM
+ST011,Kagiso,Phiri,staff11@driveza.co.za,0718048974,Mechanic,BR031,2015-09-12,54988.64,True,2015-09-12T00:00:00,HR_SYSTEM
+ST012,Sarah,Philips,staff12@driveza.co.za,0763629556,Fleet Controller,BR001,2017-11-22,64862.34,True,2017-11-22T00:00:00,HR_SYSTEM
+ST013,Sipho,Mbatha,staff13@driveza.co.za,0744874664,Accounts Officer,BR012,2021-04-04,56485.29,True,2021-04-04T00:00:00,HR_SYSTEM
+ST014,Ayanda,Buthelezi,staff14@driveza.co.za,0627382759,Fleet Controller,BR018,2020-09-20,15354.61,True,2020-09-20T00:00:00,HR_SYSTEM
+ST015,Farai,Philips,staff15@driveza.co.za,0662861995,Driver,BR023,2016-01-26,42636.61,True,2016-01-26T00:00:00,HR_SYSTEM
+ST016,Lwazi,Singh,staff16@driveza.co.za,0821846880,Customer Service Agent,BR008,2017-03-03,58005.12,True,2017-03-03T00:00:00,HR_SYSTEM
+ST017,Ntombi,Van der Merwe,staff17@driveza.co.za,0825758652,Regional Manager,BR014,2018-04-08,60114.48,True,2018-04-08T00:00:00,HR_SYSTEM
+ST018,Aisha,Pillay,staff18@driveza.co.za,0764750907,Branch Manager,BR018,2023-05-31,42936.63,True,2023-05-31T00:00:00,HR_SYSTEM
+ST019,Zanele,Moyo,staff19@driveza.co.za,0711034771,Branch Manager,BR031,2019-09-03,49566.39,True,2019-09-03T00:00:00,HR_SYSTEM
+ST020,Anele,Ncube,staff20@driveza.co.za,0719988746,Fleet Controller,BR017,2020-01-28,41547.16,True,2020-01-28T00:00:00,HR_SYSTEM
+ST021,Xolani,Cele,staff21@driveza.co.za,0847138988,Driver,BR022,2021-05-19,30638.51,True,2021-05-19T00:00:00,HR_SYSTEM
+ST022,Raj,Zulu,staff22@driveza.co.za,0749155982,Branch Manager,BR002,2018-06-23,53526.75,True,2018-06-23T00:00:00,HR_SYSTEM
+ST023,Nomvula,Mathye,staff23@driveza.co.za,0788854716,Fleet Controller,BR004,2019-04-08,58926.4,True,2019-04-08T00:00:00,HR_SYSTEM
+ST024,Mpho,Tshabalala,staff24@driveza.co.za,0623252072,Branch Manager,BR015,2021-11-01,29462.29,True,2021-11-01T00:00:00,HR_SYSTEM
+ST025,Tendai,Mnguni,staff25@driveza.co.za,0731744925,Driver,BR004,2018-05-12,54052.6,True,2018-05-12T00:00:00,HR_SYSTEM
+ST026,Kgomotso,Jones,staff26@driveza.co.za,0829137609,Regional Manager,BR013,2017-12-20,39329.94,True,2017-12-20T00:00:00,HR_SYSTEM
+ST027,Rethabile,Pillay,staff27@driveza.co.za,0834258377,Customer Service Agent,BR028,2016-09-29,48270.01,True,2016-09-29T00:00:00,HR_SYSTEM
+ST028,James,Williams,staff28@driveza.co.za,0635529667,Regional Manager,BR008,2022-09-09,21266.98,True,2022-09-09T00:00:00,HR_SYSTEM
+ST029,Nadia,Majola,staff29@driveza.co.za,0667037341,Driver,BR016,2023-08-25,62259.49,True,2023-08-25T00:00:00,HR_SYSTEM
+ST030,Bongani,Van der Merwe,staff30@driveza.co.za,0793354773,Fleet Controller,BR016,2018-08-06,44944.01,True,2018-08-06T00:00:00,HR_SYSTEM
+ST031,Sanele,Tshabalala,staff31@driveza.co.za,0824629148,Fleet Controller,BR021,2015-08-10,49583.32,True,2015-08-10T00:00:00,HR_SYSTEM
+ST032,Bulelani,Mokoena,staff32@driveza.co.za,0722837321,Driver,BR024,2017-12-13,31078.93,True,2017-12-13T00:00:00,HR_SYSTEM
+ST033,Bongani,Radebe,staff33@driveza.co.za,0624300893,IT Support,BR026,2016-10-16,38161.72,True,2016-10-16T00:00:00,HR_SYSTEM
+ST034,Aisha,Phiri,staff34@driveza.co.za,0635491532,IT Support,BR017,2022-07-21,58538.35,True,2022-07-21T00:00:00,HR_SYSTEM
+ST035,Sumaya,Philips,staff35@driveza.co.za,0736422322,Fleet Controller,BR001,2015-10-07,63632.12,True,2015-10-07T00:00:00,HR_SYSTEM
+ST036,Siyanda,Phiri,staff36@driveza.co.za,0602127368,Mechanic,BR014,2018-12-01,22973.09,True,2018-12-01T00:00:00,HR_SYSTEM
+ST037,Farai,Hadebe,staff37@driveza.co.za,0737454721,Driver,BR015,2023-02-16,30250.42,True,2023-02-16T00:00:00,HR_SYSTEM
+ST038,Thabo,Naidoo,staff38@driveza.co.za,0602808661,Regional Manager,BR024,2015-07-31,35960.95,True,2015-07-31T00:00:00,HR_SYSTEM
+ST039,Priya,Singh,staff39@driveza.co.za,0641539177,Branch Manager,BR027,2020-02-22,24381.26,True,2020-02-22T00:00:00,HR_SYSTEM
+ST040,Yusuf,Ndlovu,staff40@driveza.co.za,0636276603,Fleet Controller,BR017,2022-09-08,44210.32,True,2022-09-08T00:00:00,HR_SYSTEM
+ST041,Precious,Masondo,staff41@driveza.co.za,0722603554,Branch Manager,BR019,2018-06-10,63829.91,True,2018-06-10T00:00:00,HR_SYSTEM
+ST042,Rethabile,Nkosi,staff42@driveza.co.za,0661296134,Accounts Officer,BR031,2016-09-24,48633.49,True,2016-09-24T00:00:00,HR_SYSTEM
+ST043,Yusuf,Masondo,staff43@driveza.co.za,0829818842,Regional Manager,BR028,2019-01-19,53415.73,True,2019-01-19T00:00:00,HR_SYSTEM
+ST044,Tshepo,Pillay,staff44@driveza.co.za,0625045964,Fleet Controller,BR029,2019-11-04,43444.63,True,2019-11-04T00:00:00,HR_SYSTEM
+ST045,Nandi,Mbatha,staff45@driveza.co.za,0662306951,Customer Service Agent,BR028,2017-02-17,45130.57,True,2017-02-17T00:00:00,HR_SYSTEM
+ST046,Bulelani,Chauke,staff46@driveza.co.za,0849715186,Mechanic,BR011,2022-03-18,38984.49,True,2022-03-18T00:00:00,HR_SYSTEM
+ST047,Amahle,Ngcobo,staff47@driveza.co.za,0668667333,IT Support,BR018,2016-03-26,51689.49,True,2016-03-26T00:00:00,HR_SYSTEM
+ST048,Ayanda,Radebe,staff48@driveza.co.za,0767591402,Regional Manager,BR028,2017-08-07,29470.57,True,2017-08-07T00:00:00,HR_SYSTEM
+ST049,Priya,Hadebe,staff49@driveza.co.za,0825740303,Mechanic,BR015,2016-05-20,32328.69,True,2016-05-20T00:00:00,HR_SYSTEM
+ST050,Haroon,Sithole,staff50@driveza.co.za,0823917274,Fleet Controller,BR007,2017-11-18,60105.26,False,2017-11-18T00:00:00,HR_SYSTEM
+ST051,Lwazi,Ntanzi,staff51@driveza.co.za,0798708611,Fleet Controller,BR016,2015-03-21,58621.69,True,2015-03-21T00:00:00,HR_SYSTEM
+ST052,James,Masondo,staff52@driveza.co.za,0719869585,Customer Service Agent,BR014,2020-06-05,53105.59,True,2020-06-05T00:00:00,HR_SYSTEM
+ST053,Maria,Phiri,staff53@driveza.co.za,0731158905,Fleet Controller,BR026,2016-12-21,16002.38,True,2016-12-21T00:00:00,HR_SYSTEM
+ST054,Sanele,Banda,staff54@driveza.co.za,0812703143,Mechanic,BR027,2023-10-15,26640.41,True,2023-10-15T00:00:00,HR_SYSTEM
+ST055,Zandile,Davids,staff55@driveza.co.za,0646063842,Fleet Controller,BR010,2021-10-11,45022.0,True,2021-10-11T00:00:00,HR_SYSTEM
+ST056,Mpho,Molefe,staff56@driveza.co.za,0812826758,Customer Service Agent,BR017,2017-07-16,28894.44,True,2017-07-16T00:00:00,HR_SYSTEM
+ST057,Kgomotso,Gumede,staff57@driveza.co.za,0625777130,Customer Service Agent,BR023,2023-02-23,56944.2,True,2023-02-23T00:00:00,HR_SYSTEM
+ST058,David,Patel,staff58@driveza.co.za,0606628502,Fleet Controller,BR003,2019-02-16,38237.3,True,2019-02-16T00:00:00,HR_SYSTEM
+ST059,Thabo,Smith,staff59@driveza.co.za,0637946187,Branch Manager,BR005,2018-02-23,30457.35,True,2018-02-23T00:00:00,HR_SYSTEM
+ST060,Sipho,Nkosi,staff60@driveza.co.za,0737101260,Accounts Officer,BR002,2018-04-29,21606.21,True,2018-04-29T00:00:00,HR_SYSTEM
+ST061,Kefilwe,Jones,staff61@driveza.co.za,0781939094,IT Support,BR010,2019-08-05,37951.9,True,2019-08-05T00:00:00,HR_SYSTEM
+ST062,Rethabile,Ncube,staff62@driveza.co.za,0769833042,Branch Manager,BR015,2017-10-16,42365.6,True,2017-10-16T00:00:00,HR_SYSTEM
+ST063,Thabo,Radebe,staff63@driveza.co.za,0747722056,Regional Manager,BR027,2017-09-11,31177.33,True,2017-09-11T00:00:00,HR_SYSTEM
+ST064,Sumaya,Hendricks,staff64@driveza.co.za,0739134615,Customer Service Agent,BR013,2019-12-19,24086.91,True,2019-12-19T00:00:00,HR_SYSTEM
+ST065,Palesa,Naidoo,staff65@driveza.co.za,0793720295,IT Support,BR001,2015-01-31,42266.14,True,2015-01-31T00:00:00,HR_SYSTEM
+ST066,Amahle,Banda,staff66@driveza.co.za,0844601428,Accounts Officer,BR022,2015-01-18,38540.78,True,2015-01-18T00:00:00,HR_SYSTEM
+ST067,Bongani,Zulu,staff67@driveza.co.za,0792239432,IT Support,BR025,2019-06-10,59043.15,True,2019-06-10T00:00:00,HR_SYSTEM
+ST068,Kgomotso,Davids,staff68@driveza.co.za,0811562913,Driver,BR024,2017-10-15,16384.68,True,2017-10-15T00:00:00,HR_SYSTEM
+ST069,Nadia,Mahlangu,staff69@driveza.co.za,0743402474,Branch Manager,BR026,2016-01-01,33412.72,True,2016-01-01T00:00:00,HR_SYSTEM
+ST070,Xolani,Van der Merwe,staff70@driveza.co.za,0723090270,Fleet Controller,BR029,2021-09-07,15388.14,True,2021-09-07T00:00:00,HR_SYSTEM
+ST071,Haroon,Maluleke,staff71@driveza.co.za,0846343123,Customer Service Agent,BR019,2020-08-21,26326.52,True,2020-08-21T00:00:00,HR_SYSTEM
+ST072,Nomvula,Reddy,staff72@driveza.co.za,0791548440,Regional Manager,BR021,2019-07-05,24804.95,True,2019-07-05T00:00:00,HR_SYSTEM
+ST073,Tumi,Ntanzi,staff73@driveza.co.za,0844028148,Driver,BR006,2023-07-18,58522.62,False,2023-07-18T00:00:00,HR_SYSTEM
+ST074,Nandi,Singh,staff74@driveza.co.za,0713723122,Fleet Controller,BR021,2016-05-16,12462.86,True,2016-05-16T00:00:00,HR_SYSTEM
+ST075,Anna,Zulu,staff75@driveza.co.za,0814891603,Regional Manager,BR017,2022-08-25,51913.71,True,2022-08-25T00:00:00,HR_SYSTEM
+ST076,Johan,Ncube,staff76@driveza.co.za,0652906316,Driver,BR019,2022-04-22,56167.38,True,2022-04-22T00:00:00,HR_SYSTEM
+ST077,David,Khumalo,staff77@driveza.co.za,0649410712,Mechanic,BR011,2015-09-20,49862.37,False,2015-09-20T00:00:00,HR_SYSTEM
+ST078,Emma,Moyo,staff78@driveza.co.za,0766329554,Regional Manager,BR027,2017-02-09,55883.6,False,2017-02-09T00:00:00,HR_SYSTEM
+ST079,Kefilwe,Smith,staff79@driveza.co.za,0668611089,Fleet Controller,BR032,2023-05-12,61134.01,True,2023-05-12T00:00:00,HR_SYSTEM
+ST080,Lisa,Chikwanda,staff80@driveza.co.za,0656423908,Fleet Controller,BR019,2015-09-20,17148.69,True,2015-09-20T00:00:00,HR_SYSTEM
