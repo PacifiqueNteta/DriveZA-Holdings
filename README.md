@@ -51,7 +51,7 @@ multiple source systems into a governed, versioned lakehouse.
 
 ## Repository Structure
 
-\```
+```text
 driveza-data-platform/
 ├── architecture/      ← Diagrams and design decisions
 ├── data/              ← Raw CSV files (simulating file drops)
@@ -59,7 +59,6 @@ driveza-data-platform/
 ├── pipelines/         ← Fabric pipeline JSON definitions
 ├── semantic_model/    ← TMDL files (synced from Fabric)
 └── docs/              ← Setup guide, watermark strategy, star schema
-\```
 
 ## Setup Guide
 
