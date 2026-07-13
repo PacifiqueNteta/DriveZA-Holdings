@@ -63,9 +63,8 @@ Driveza-holdings-data-platform/
 ├── data/
 │   │
 │   └── raw-landing/
-│       ├── payments/
-│       │   └── crm_payments.csv
-│       └── hr/
+│       ├── admin/
+│           └── crm_branches.csv
 │           └── hr_staff.csv
 │
 ├── src/
