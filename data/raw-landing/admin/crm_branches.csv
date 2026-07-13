@@ -1,0 +1,33 @@
+branch_id,branch_name,province,city,address,postal_code,phone,email,is_airport_branch,opening_hours,manager_name,fleet_capacity,created_at,updated_at,is_active,source_system
+BR001,DriveZA Johannesburg,Gauteng,Johannesburg,13 Voortrekker St,5012,0713341057,johannesburg.branch@driveza.co.za,False,07:00-19:00,Anna Zulu,111,2019-02-25T00:00:00,2023-01-21T00:00:00,True,CRM_WEB
+BR002,DriveZA Pretoria,Gauteng,Pretoria,16 Main St,4582,0719478454,pretoria.branch@driveza.co.za,False,07:00-19:00,Xolani Nkosi,96,2016-02-12T00:00:00,2024-01-06T00:00:00,True,CRM_WEB
+BR003,DriveZA Sandton,Gauteng,Sandton,113 Commissioner St,5557,0603678638,sandton.branch@driveza.co.za,False,07:00-19:00,David Philips,68,2016-07-23T00:00:00,2020-11-14T00:00:00,True,CRM_WEB
+BR004,DriveZA Midrand,Gauteng,Midrand,53 Main St,7224,0637022674,midrand.branch@driveza.co.za,False,07:00-19:00,Aisha Reddy,102,2016-06-25T00:00:00,2020-03-29T00:00:00,True,CRM_WEB
+BR005,DriveZA Centurion,Gauteng,Centurion,194 Main St,5803,0764226067,centurion.branch@driveza.co.za,False,07:00-19:00,Lisa Ndlovu,30,2018-09-16T00:00:00,2021-04-11T00:00:00,True,CRM_WEB
+BR006,DriveZA Soweto,Gauteng,Soweto,120 Main St,7227,0728606962,soweto.branch@driveza.co.za,False,07:00-19:00,James Singh,45,2017-01-28T00:00:00,2021-12-28T00:00:00,True,CRM_WEB
+BR007,DriveZA Cape Town,Western Cape,Cape Town,37 Jan Smuts St,3803,0845107245,cape.town.branch@driveza.co.za,False,07:00-19:00,Ayanda Mbatha,73,2016-07-06T00:00:00,2023-08-03T00:00:00,True,CRM_WEB
+BR008,DriveZA Stellenbosch Airport,Western Cape,Stellenbosch,167 Main St,4752,0616292423,stellenbosch.branch@driveza.co.za,True,06:00-22:00,Tendai Jones,33,2016-03-08T00:00:00,2023-03-07T00:00:00,True,CRM_WEB
+BR009,DriveZA George,Western Cape,George,256 Commissioner St,8517,0645443951,george.branch@driveza.co.za,False,07:00-19:00,Mpho Botha,120,2018-02-23T00:00:00,2023-01-08T00:00:00,True,CRM_WEB
+BR010,DriveZA Paarl,Western Cape,Paarl,299 Commissioner St,6930,0713320821,paarl.branch@driveza.co.za,False,07:00-19:00,Tshepo Buthelezi,36,2019-03-28T00:00:00,2020-04-06T00:00:00,True,CRM_WEB
+BR011,DriveZA Somerset West Airport,Western Cape,Somerset West,82 Commissioner St,2040,0787402509,somerset.west.branch@driveza.co.za,True,06:00-22:00,Xolani Mbatha,92,2016-05-29T00:00:00,2023-02-07T00:00:00,True,CRM_WEB
+BR012,DriveZA Durban Airport,KwaZulu-Natal,Durban,59 Jan Smuts St,5371,0742871534,durban.branch@driveza.co.za,True,06:00-22:00,Rethabile Philips,45,2017-07-18T00:00:00,2020-01-07T00:00:00,False,CRM_WEB
+BR013,DriveZA Pietermaritzburg,KwaZulu-Natal,Pietermaritzburg,135 Jan Smuts St,3927,0832785277,pietermaritzburg.branch@driveza.co.za,False,07:00-19:00,Omar Phiri,63,2019-09-20T00:00:00,2023-08-01T00:00:00,True,CRM_WEB
+BR014,DriveZA Richards Bay Airport,KwaZulu-Natal,Richards Bay,192 Church St,9837,0831009594,richards.bay.branch@driveza.co.za,True,06:00-22:00,Xolani Pillay,87,2015-02-09T00:00:00,2020-08-17T00:00:00,True,CRM_WEB
+BR015,DriveZA Umhlanga,KwaZulu-Natal,Umhlanga,158 Church St,1949,0712321324,umhlanga.branch@driveza.co.za,False,07:00-19:00,Kagiso Baloyi,87,2019-07-30T00:00:00,2020-05-21T00:00:00,False,CRM_WEB
+BR016,DriveZA Port Elizabeth,Eastern Cape,Port Elizabeth,65 Church St,8787,0843770370,port.elizabeth.branch@driveza.co.za,False,07:00-19:00,Johan Gumede,102,2017-05-16T00:00:00,2021-03-09T00:00:00,True,CRM_WEB
+BR017,DriveZA East London,Eastern Cape,East London,103 Voortrekker St,7537,0768350099,east.london.branch@driveza.co.za,False,07:00-19:00,Nadia Gumede,82,2015-09-05T00:00:00,2021-05-22T00:00:00,True,CRM_WEB
+BR018,DriveZA Grahamstown,Eastern Cape,Grahamstown,284 Church St,4608,0602191066,grahamstown.branch@driveza.co.za,False,07:00-19:00,Lisa Phiri,32,2016-04-13T00:00:00,2020-05-18T00:00:00,True,CRM_WEB
+BR019,DriveZA Polokwane,Limpopo,Polokwane,37 Jan Smuts St,4899,0729143903,polokwane.branch@driveza.co.za,False,07:00-19:00,Ntombi Mnguni,41,2019-01-21T00:00:00,2023-03-15T00:00:00,True,CRM_WEB
+BR020,DriveZA Tzaneen Airport,Limpopo,Tzaneen,243 Commissioner St,4119,0632626229,tzaneen.branch@driveza.co.za,True,06:00-22:00,Michael Philips,70,2017-05-17T00:00:00,2022-04-21T00:00:00,True,CRM_WEB
+BR021,DriveZA Louis Trichardt,Limpopo,Louis Trichardt,51 Main St,7596,0742833230,louis.trichardt.branch@driveza.co.za,False,07:00-19:00,Maria Tshabalala,49,2018-01-03T00:00:00,2022-07-07T00:00:00,True,CRM_WEB
+BR022,DriveZA Nelspruit Airport,Mpumalanga,Nelspruit,237 Church St,2235,0812642635,nelspruit.branch@driveza.co.za,True,06:00-22:00,Precious Banda,94,2019-09-09T00:00:00,2020-01-31T00:00:00,False,CRM_WEB
+BR023,DriveZA Witbank,Mpumalanga,Witbank,122 Church St,7658,0829075854,witbank.branch@driveza.co.za,False,07:00-19:00,Ntombi Hendricks,32,2015-12-04T00:00:00,2022-02-15T00:00:00,True,CRM_WEB
+BR024,DriveZA Secunda,Mpumalanga,Secunda,233 Voortrekker St,7930,0849164991,secunda.branch@driveza.co.za,False,07:00-19:00,Siyanda Tshabalala,62,2016-03-21T00:00:00,2020-04-29T00:00:00,True,CRM_WEB
+BR025,DriveZA Rustenburg,North West,Rustenburg,161 Main St,1821,0878999183,rustenburg.branch@driveza.co.za,False,07:00-19:00,Tshepo Gumede,45,2015-04-27T00:00:00,2022-11-06T00:00:00,True,CRM_WEB
+BR026,DriveZA Mahikeng Airport,North West,Mahikeng,35 Church St,7615,0635130808,mahikeng.branch@driveza.co.za,True,06:00-22:00,Itumeleng Ngcobo,30,2018-06-22T00:00:00,2020-06-16T00:00:00,True,CRM_WEB
+BR027,DriveZA Klerksdorp,North West,Klerksdorp,268 Voortrekker St,5272,0666271130,klerksdorp.branch@driveza.co.za,False,07:00-19:00,Maria Smith,75,2015-09-26T00:00:00,2023-10-07T00:00:00,True,CRM_WEB
+BR028,DriveZA Bloemfontein,Free State,Bloemfontein,38 Main St,8508,0872677407,bloemfontein.branch@driveza.co.za,False,07:00-19:00,Lerato Mnguni,52,2017-11-02T00:00:00,2021-06-27T00:00:00,True,CRM_WEB
+BR029,DriveZA Welkom,Free State,Welkom,36 Church St,7054,0733646552,welkom.branch@driveza.co.za,False,07:00-19:00,Lindiwe Mnguni,115,2016-09-11T00:00:00,2023-06-06T00:00:00,False,CRM_WEB
+BR030,DriveZA Kimberley,Free State,Kimberley,271 Main St,5905,0633253031,kimberley.branch@driveza.co.za,False,07:00-19:00,Johan Sithole,38,2019-03-01T00:00:00,2023-02-07T00:00:00,True,CRM_WEB
+BR031,DriveZA Upington,Northern Cape,Upington,108 Voortrekker St,4335,0729479356,upington.branch@driveza.co.za,False,07:00-19:00,Kgomotso Smith,31,2015-07-09T00:00:00,2023-07-23T00:00:00,True,CRM_WEB
+BR032,DriveZA Springbok,Northern Cape,Springbok,2 Voortrekker St,3143,0723710895,springbok.branch@driveza.co.za,False,07:00-19:00,Anna Williams,95,2018-12-16T00:00:00,2022-05-25T00:00:00,True,CRM_WEB
