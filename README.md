@@ -1,7 +1,6 @@
 # DriveZA Holdings — Data Platform
 
-> End-to-end data engineering portfolio project built on Microsoft Fabric
-> following medallion architecture (Bronze → Silver → Gold).
+ End-to-end data engineering solution simulating a project done for a client built on Microsoft Fabric following medallion architecture (Bronze → Silver → Gold).
 
 ## Company Overview
 
@@ -18,16 +17,16 @@ multiple source systems into a governed, versioned lakehouse.
 
 | System | Platform | Tables | Connector |
 |---|---|---|---|
-| CRM System | SQL Server On-Premise | customers, rentals, promotions, reviews | SHIR |
-| Fleet Management | Snowflake | vehicles, branches, maintenance, incidents | Native |
-| Payment Gateway | GitHub (CSV) | payments | HTTP |
-| HR System | GitHub (CSV) | staff | HTTP |
+| CRM System | SQL Server On-Premise | customers, payments, rentals, promotions, reviews | SHIR |
+| Fleet Management | Snowflake | vehicles, maintenance, incidents | Native |
+| Admin System | GitHub (CSV) | branches | HTTP |
+| Admin System | GitHub (CSV) | staff | HTTP |
 
 ### Medallion Layers
 
 | Layer | Fabric Item | Purpose |
 |---|---|---|
-| Bronze | `LH_DRZ_BRONZE_RAW` | Raw landed data — no transformations |
+| Bronze | `LH_DRZ_BRONZE` | Raw landed data — no transformations |
 | Silver | `LH_DRZ_SILVER` | Cleaned, typed, deduplicated, incremental |
 | Gold | `WH_DRZ_GOLD` | Star schema — Dims and Facts |
 
@@ -64,7 +63,7 @@ Driveza-holdings-data-platform/
 │   │
 │   └── raw-landing/
 │       ├── admin/
-│           └── crm_branches.csv
+│           ├── crm_branches.csv
 │           └── hr_staff.csv
 │
 ├── src/
@@ -86,7 +85,15 @@ Driveza-holdings-data-platform/
 │   └── source_systems.md
 │
 └── fabric/
-    └── [auto-managed by Fabric Git integration]
+    ├── Bronze
+    │       ├── Notebooks
+    │       ├── Pipelines
+    │       └── Lakehouse
+    │
+    │
+    │
+    ├── Silver
+    └── Gold
 ```
 
 ## Setup Guide
@@ -98,8 +105,3 @@ to reproduce this project from scratch.
 
 All data is synthetic and generated using Python (Faker + custom generators).
 Generation script: `src/data_generation/generate_data.py`
-
----
-
-*Built by Pacifique Nteta — Senior Data Engineer & Power BI Developer*
-*Microsoft Certified: PL-300 | DP-600*
