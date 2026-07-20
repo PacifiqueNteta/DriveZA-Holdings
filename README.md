@@ -11,7 +11,7 @@ multiple source systems into a governed, versioned lakehouse.
 
 ## Architecture
 
-![Architecture Diagram](architecture/architecture_diagram.png)
+![Architecture Diagram](architecture/Architecture%20Diagram.png)
 
 ### Source Systems
 
