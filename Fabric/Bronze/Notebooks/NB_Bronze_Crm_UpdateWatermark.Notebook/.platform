@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "NB_Bronze_Crm_UpdateWatermark"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "755af703-5468-bb23-4b1d-f2872e7b5e6c"
+  }
+}

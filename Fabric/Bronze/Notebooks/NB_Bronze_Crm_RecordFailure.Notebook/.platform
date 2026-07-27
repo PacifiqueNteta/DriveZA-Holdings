@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "NB_Bronze_Crm_RecordFailure"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "87dbea49-7f96-8f6b-4118-4a986b70061c"
+  }
+}
