@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "MirroredDatabase",
+    "displayName": "DRIVEZA_FLEET"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a6e6957f-8a29-ab8f-4b26-e8b02736f7f1"
+  }
+}

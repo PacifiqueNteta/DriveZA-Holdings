@@ -1,0 +1,38 @@
+{
+  "properties": {
+    "source": {
+      "type": "Snowflake",
+      "typeProperties": {
+        "connection": "7a07170e-72e2-4f5a-9b61-01aac0b446fc",
+        "database": "DRIVEZA_FLEET",
+        "externalStorages": [
+          {
+            "type": "AzureDataLakeStorage",
+            "typeProperties": {
+              "connection": "02ae6dc8-3de2-4778-a699-0940cff8a063"
+            }
+          }
+        ],
+        "filterRules": [
+          {
+            "target": "objectType",
+            "action": "allow",
+            "values": [
+              "Table",
+              "IcebergTable"
+            ]
+          }
+        ]
+      }
+    },
+    "target": {
+      "type": "MountedRelationalDatabase",
+      "typeProperties": {
+        "defaultSchema": "dbo",
+        "format": "Delta",
+        "retentionInDays": 1,
+        "enableDeltaChangeDataFeed": false
+      }
+    }
+  }
+}
