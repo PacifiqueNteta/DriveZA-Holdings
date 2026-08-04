@@ -21,7 +21,7 @@
               "location": {
                 "type": "LakehouseLocation",
                 "folderPath": "Configurations",
-                "fileName": "crm config.csv"
+                "fileName": "crm_config.csv"
               },
               "columnDelimiter": ",",
               "quoteChar": "\"",
@@ -42,122 +42,666 @@
               }
             },
             "annotations": []
-          }
+          },
+          "firstRowOnly": false
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 0,
+          "retry": 1,
           "retryIntervalInSeconds": 30,
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "Look up config",
+        "name": "LKP_GetCRMConfig",
         "dependsOn": []
       },
       {
         "type": "ForEach",
         "typeProperties": {
+          "isSequential": false,
+          "batchCount": 1,
           "items": {
-            "value": "@activity('Look up config').output",
+            "value": "@activity('FLTR_ActiveTables').output.value",
             "type": "Expression"
           },
           "activities": [
             {
-              "type": "IfCondition",
+              "type": "TridentNotebook",
               "typeProperties": {
-                "expression": {
-                  "value": "@equals(item().load_type, 'incremental')",
+                "notebookId": "c87665ef-1206-b448-4e71-3815b48b833c",
+                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "parameters": {
+                  "table_name": {
+                    "value": {
+                      "value": "@item().source_table_name",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "schema_name": {
+                    "value": {
+                      "value": "@item().schema_name",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "default_watermark": {
+                    "value": {
+                      "value": "@item().default_watermark",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "initial_load_column": {
+                    "value": {
+                      "value": "@item().initial_load_column",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "incremental_column": {
+                    "value": {
+                      "value": "@item().incremental_column",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  }
+                }
+              },
+              "externalReferences": {
+                "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+              },
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 1,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "NB_GetWatermark",
+              "dependsOn": []
+            },
+            {
+              "type": "Switch",
+              "typeProperties": {
+                "on": {
+                  "value": "@item().load_type",
                   "type": "Expression"
                 },
-                "ifTrueActivities": [],
-                "ifFalseActivities": [
+                "cases": [
                   {
-                    "type": "Copy",
-                    "typeProperties": {
-                      "source": {
-                        "type": "SqlServerSource",
-                        "sqlReaderQuery": {
-                          "value": "SELECT * FROM [@{item().schema_name}].@{item().source_table_name}",
-                          "type": "Expression"
-                        },
-                        "partitionOption": "None",
-                        "queryTimeout": "02:00:00",
-                        "datasetSettings": {
-                          "type": "SqlServerTable",
-                          "typeProperties": {
-                            "database": "DriveZa"
-                          },
-                          "schema": [],
-                          "externalReferences": {
-                            "connection": "ceeba09b-c44b-4f13-94f7-7550b2337866"
-                          },
-                          "annotations": []
-                        }
-                      },
-                      "sink": {
-                        "type": "LakehouseTableSink",
-                        "tableActionOption": "Append",
-                        "applyVOrder": false,
-                        "partitionOption": "None",
-                        "datasetSettings": {
-                          "type": "LakehouseTable",
-                          "typeProperties": {
-                            "schema": {
-                              "value": "@{item().schema_name}",
+                    "value": "incremental",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "SqlServerSource",
+                            "sqlReaderQuery": {
+                              "value": "@split(activity('NB_GetWatermark').output.result.exitValue, '|')[3]",
                               "type": "Expression"
                             },
-                            "table": {
-                              "value": "@{item().destination_table}",
-                              "type": "Expression"
-                            }
-                          },
-                          "schema": [],
-                          "linkedService": {
-                            "name": "LH_DRZ_BRONZE",
-                            "properties": {
-                              "type": "Lakehouse",
+                            "partitionOption": "None",
+                            "queryTimeout": "02:00:00",
+                            "datasetSettings": {
+                              "type": "SqlServerTable",
                               "typeProperties": {
-                                "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
-                                "workspaceId": "00000000-0000-0000-0000-000000000000",
-                                "rootFolder": "Tables"
+                                "database": "DriveZa"
+                              },
+                              "schema": [],
+                              "externalReferences": {
+                                "connection": "ceeba09b-c44b-4f13-94f7-7550b2337866"
                               },
                               "annotations": []
                             }
                           },
-                          "annotations": []
-                        }
+                          "sink": {
+                            "type": "LakehouseTableSink",
+                            "tableActionOption": "Append",
+                            "applyVOrder": false,
+                            "partitionOption": "None",
+                            "datasetSettings": {
+                              "type": "LakehouseTable",
+                              "typeProperties": {
+                                "schema": {
+                                  "value": "@item().schema_name",
+                                  "type": "Expression"
+                                },
+                                "table": {
+                                  "value": "@item().destination_table_name",
+                                  "type": "Expression"
+                                }
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_DRZ_BRONZE",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
+                                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                    "rootFolder": "Tables"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 2,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "CPY_Incremental",
+                        "dependsOn": []
                       },
-                      "translator": {
-                        "type": "TabularTranslator",
-                        "typeConversion": true,
-                        "typeConversionSettings": {
-                          "allowDataTruncation": true,
-                          "treatBooleanAsNumber": false
-                        }
+                      {
+                        "type": "TridentNotebook",
+                        "typeProperties": {
+                          "notebookId": "755af703-5468-bb23-4b1d-f2872e7b5e6c",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "parameters": {
+                            "table_name": {
+                              "value": {
+                                "value": "@item().source_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "schema_name": {
+                              "value": {
+                                "value": "@item().schema_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "effective_column": {
+                              "value": {
+                                "value": "@split(activity('NB_GetWatermark').output.result.exitValue, '|')[1]",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_table": {
+                              "value": {
+                                "value": "@item().destination_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "pipeline_name": {
+                              "value": "\"PL_Bronze_CRM\"",
+                              "type": "string"
+                            },
+                            "load_type": {
+                              "value": {
+                                "value": "@item().load_type",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "start_time_str": {
+                              "value": {
+                                "value": "@activity('NB_GetWatermark').ExecutionStartTime",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "externalReferences": {
+                          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "NB_UpdateWatermark_IncrementalCPY",
+                        "dependsOn": [
+                          {
+                            "activity": "CPY_Incremental",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
                       },
-                      "enableStaging": false
+                      {
+                        "type": "TridentNotebook",
+                        "typeProperties": {
+                          "notebookId": "87dbea49-7f96-8f6b-4118-4a986b70061c",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "parameters": {
+                            "table_name": {
+                              "value": {
+                                "value": "@item().source_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "schema_name": {
+                              "value": {
+                                "value": "@item().schema_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_table_name": {
+                              "value": {
+                                "value": "@item().destination_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "error_message": {
+                              "value": {
+                                "value": "@activity('CPY_Incremental').Error.message",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "pipeline_name": {
+                              "value": "\"PL_Bronze_CRM\"",
+                              "type": "string"
+                            },
+                            "load_type": {
+                              "value": {
+                                "value": "@item().load_type",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "start_time_str": {
+                              "value": {
+                                "value": "@activity('NB_GetWatermark').ExecutionStartTime",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "externalReferences": {
+                          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "NB_RecordFailure_IncrementalCPY",
+                        "dependsOn": [
+                          {
+                            "activity": "CPY_Incremental",
+                            "dependencyConditions": [
+                              "Failed"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "full",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "SqlServerSource",
+                            "sqlReaderQuery": {
+                              "value": "@concat('SELECT * FROM [', item().schema_name, '].', item().source_table_name)",
+                              "type": "Expression"
+                            },
+                            "partitionOption": "None",
+                            "queryTimeout": "02:00:00",
+                            "datasetSettings": {
+                              "type": "SqlServerTable",
+                              "typeProperties": {
+                                "database": "DriveZa"
+                              },
+                              "schema": [],
+                              "externalReferences": {
+                                "connection": "ceeba09b-c44b-4f13-94f7-7550b2337866"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "sink": {
+                            "type": "LakehouseTableSink",
+                            "tableActionOption": "Upsert",
+                            "applyVOrder": false,
+                            "upsertSettings": {
+                              "keys": {
+                                "value": "@split(item().upsert_key, ';')",
+                                "type": "Expression"
+                              }
+                            },
+                            "partitionOption": "None",
+                            "datasetSettings": {
+                              "type": "LakehouseTable",
+                              "typeProperties": {
+                                "schema": {
+                                  "value": "@item().schema_name",
+                                  "type": "Expression"
+                                },
+                                "table": {
+                                  "value": "@item().destination_table_name",
+                                  "type": "Expression"
+                                }
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_DRZ_BRONZE",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
+                                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                    "rootFolder": "Tables"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 3,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "CPY_Full",
+                        "dependsOn": []
+                      },
+                      {
+                        "type": "TridentNotebook",
+                        "typeProperties": {
+                          "notebookId": "755af703-5468-bb23-4b1d-f2872e7b5e6c",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "parameters": {
+                            "table_name": {
+                              "value": {
+                                "value": "@item().source_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "schema_name": {
+                              "value": {
+                                "value": "@item().schema_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "effective_column": {
+                              "value": {
+                                "value": "@split(activity('NB_GetWatermark').output.result.exitValue, '|')[1]",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_table": {
+                              "value": {
+                                "value": "@item().destination_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "pipeline_name": {
+                              "value": "\"PL_Bronze_CRM\"",
+                              "type": "string"
+                            },
+                            "load_type": {
+                              "value": {
+                                "value": "@item().load_type",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "start_time_str": {
+                              "value": {
+                                "value": "@activity('NB_GetWatermark').ExecutionStartTime",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "externalReferences": {
+                          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "NB_UpdateWatermark_FullCPY",
+                        "dependsOn": [
+                          {
+                            "activity": "CPY_Full",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "TridentNotebook",
+                        "typeProperties": {
+                          "notebookId": "87dbea49-7f96-8f6b-4118-4a986b70061c",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "parameters": {
+                            "table_name": {
+                              "value": {
+                                "value": "@item().source_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "schema_name": {
+                              "value": {
+                                "value": "@item().schema_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_table_name": {
+                              "value": {
+                                "value": "@item().destination_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "error_message": {
+                              "value": {
+                                "value": "@activity('CPY_Full').Error.message",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "pipeline_name": {
+                              "value": "\"PL_Bronze_CRM\"",
+                              "type": "string"
+                            },
+                            "load_type": {
+                              "value": {
+                                "value": "@item().load_type",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "start_time_str": {
+                              "value": {
+                                "value": "@activity('NB_GetWatermark').ExecutionStartTime",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "externalReferences": {
+                          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "NB_RecordFailure_FullCPY",
+                        "dependsOn": [
+                          {
+                            "activity": "CPY_Full",
+                            "dependencyConditions": [
+                              "Failed"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "defaultActivities": [
+                  {
+                    "type": "TridentNotebook",
+                    "typeProperties": {
+                      "notebookId": "87dbea49-7f96-8f6b-4118-4a986b70061c",
+                      "workspaceId": "00000000-0000-0000-0000-000000000000",
+                      "parameters": {
+                        "table_name": {
+                          "value": {
+                            "value": "@item().source_table_name",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        },
+                        "schema_name": {
+                          "value": {
+                            "value": "@item().schema_name",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        },
+                        "destination_table_name": {
+                          "value": {
+                            "value": "@item().destination_table_name",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        },
+                        "error_message": {
+                          "value": {
+                            "value": "@concat('Unrecognized load_type value: ', item().load_type)",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        },
+                        "pipeline_name": {
+                          "value": "\"PL_Bronze_CRM\"",
+                          "type": "string"
+                        },
+                        "load_type": {
+                          "value": {
+                            "value": "@item().load_type",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        },
+                        "start_time_str": {
+                          "value": {
+                            "value": "@activity('NB_GetWatermark').ExecutionStartTime",
+                            "type": "Expression"
+                          },
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "externalReferences": {
+                      "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
                     },
                     "policy": {
                       "timeout": "0.12:00:00",
-                      "retry": 3,
+                      "retry": 1,
                       "retryIntervalInSeconds": 30,
                       "secureInput": false,
                       "secureOutput": false
                     },
-                    "name": "Full_CopyData",
+                    "name": "NB_RecordFailure_LoadType",
                     "dependsOn": []
                   }
                 ]
               },
-              "name": "Load Type Condition",
-              "dependsOn": []
+              "name": "SW_LoadType",
+              "dependsOn": [
+                {
+                  "activity": "NB_GetWatermark",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
             }
           ]
         },
-        "name": "ForEach crm table",
+        "name": "ForEach_CrmTable",
         "dependsOn": [
           {
-            "activity": "Look up config",
+            "activity": "FLTR_ActiveTables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Filter",
+        "typeProperties": {
+          "items": {
+            "value": "@activity('LKP_GetCRMConfig').output.value",
+            "type": "Expression"
+          },
+          "condition": {
+            "value": "@equals(item().is_active,'1')",
+            "type": "Expression"
+          }
+        },
+        "name": "FLTR_ActiveTables",
+        "dependsOn": [
+          {
+            "activity": "LKP_GetCRMConfig",
             "dependencyConditions": [
               "Succeeded"
             ]
