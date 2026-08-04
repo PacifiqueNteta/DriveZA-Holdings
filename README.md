@@ -11,7 +11,17 @@ multiple source systems into a governed, versioned lakehouse.
 
 ## Architecture
 
-![Architecture Diagram](architecture/Architecture%20Diagram.png)
+### 1. Main
+
+![Architecture Diagram](architecture/DriveZa%20Architecture.drawio.svg)
+
+### 2. Bronze Layer
+
+
+### 3. Silver Layer
+
+
+### 4. Gold Layer
 
 ### Source Systems
 
