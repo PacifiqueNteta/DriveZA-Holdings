@@ -22,68 +22,95 @@
 
 # CELL ********************
 
-# ── Parameters cell ──
-table_name = ""
-schema_name = ""
-effective_column = ""
-destination_table = ""
-pipeline_name = ""
-load_type = ""
-start_time_str = ""
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
 # ── Logic cell ──
 from pyspark.sql import functions as F
-from datetime import datetime
+from datetime import datetime, timezone
+
+
 
 CTRL_WATERMARK = "metadata.pipeline_watermark"
 CTRL_RUN_LOG = "metadata.pipeline_run_log"
 bronze_table = f"{schema_name}.{destination_table}"
 
-run_start = datetime.fromisoformat(start_time_str) if start_time_str else datetime.now()
-run_end = datetime.now()
+run_start = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
+run_end = datetime.now(timezone.utc)
 duration_seconds = int((run_end - run_start).total_seconds())
 
-new_watermark_row = (
-    spark.table(bronze_table)
-    .agg(F.max(F.col(effective_column)).alias("max_val"))
-    .collect()
-)
-new_watermark = str(new_watermark_row[0]["max_val"]) if new_watermark_row[0]["max_val"] is not None else None
 rows_copied = spark.table(bronze_table).count()
 
-if new_watermark is not None:
-    exists = (
-        spark.table(CTRL_WATERMARK)
-        .filter((F.col("table_name") == table_name) & (F.col("schema_name") == schema_name))
-        .count() > 0
+if load_type.lower() == "incremental":
+
+    new_watermark_row = (
+        spark.table(bronze_table)
+        .agg(F.max(F.col(effective_column)).alias("max_val"))
+        .collect()
     )
-    if exists:
-        spark.sql(f"""
-            UPDATE {CTRL_WATERMARK}
-            SET max_incremental_value = '{new_watermark}',
-                last_run_status = 'Succeeded',
-                last_run_end_time = current_timestamp(),
-                rows_copied = {rows_copied},
-                updated_at = current_timestamp()
-            WHERE table_name = '{table_name}' AND schema_name = '{schema_name}'
-        """)
-    else:
-        spark.sql(f"""
-            INSERT INTO {CTRL_WATERMARK}
-            (schema_name, table_name, max_incremental_value, last_run_status,
-             last_run_end_time, rows_copied, created_at, updated_at)
-            VALUES ('{schema_name}', '{table_name}', '{new_watermark}', 'Succeeded',
-                    current_timestamp(), {rows_copied}, current_timestamp(), current_timestamp())
-        """)
+
+    new_watermark = (
+        str(new_watermark_row[0]["max_val"])
+        if new_watermark_row[0]["max_val"] is not None
+        else None
+    )
+
+else:
+
+    new_watermark = None
+
+exists = (
+    spark.table(CTRL_WATERMARK)
+    .filter(
+        (F.col("table_name") == table_name) &
+        (F.col("schema_name") == schema_name)
+    )
+    .count() > 0
+)
+
+watermark_value = (
+    f"'{new_watermark}'"
+    if new_watermark is not None
+    else "NULL"
+)
+
+if exists:
+
+    spark.sql(f"""
+        UPDATE {CTRL_WATERMARK}
+        SET
+            max_incremental_value = {watermark_value},
+            last_run_status = 'Succeeded',
+            last_run_end_time = current_timestamp(),
+            rows_copied = {rows_copied},
+            updated_at = current_timestamp()
+        WHERE table_name = '{table_name}'
+          AND schema_name = '{schema_name}'
+    """)
+
+else:
+
+    spark.sql(f"""
+        INSERT INTO {CTRL_WATERMARK}
+        (
+            schema_name,
+            table_name,
+            max_incremental_value,
+            last_run_status,
+            last_run_end_time,
+            rows_copied,
+            created_at,
+            updated_at
+        )
+        VALUES
+        (
+            '{schema_name}',
+            '{table_name}',
+            {watermark_value},
+            'Succeeded',
+            current_timestamp(),
+            {rows_copied},
+            current_timestamp(),
+            current_timestamp()
+        )
+    """)
 
 run_status = "Succeeded" if new_watermark is not None else "Succeeded_NoRows"
 

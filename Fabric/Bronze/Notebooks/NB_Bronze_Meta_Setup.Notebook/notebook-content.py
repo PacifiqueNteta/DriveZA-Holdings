@@ -78,7 +78,6 @@ print("Table 'metadata.pipeline_watermark' ready.")
 
 spark.sql("""
     CREATE TABLE IF NOT EXISTS metadata.pipeline_run_log (
-        log_id                      STRING,
         pipeline_name               STRING,
         schema_name                 STRING,
         table_name                  STRING,

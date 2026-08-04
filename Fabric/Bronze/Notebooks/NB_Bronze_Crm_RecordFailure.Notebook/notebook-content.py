@@ -22,27 +22,17 @@
 
 # CELL ********************
 
-table_name = ""
-schema_name = ""
-destination_table_name = ""
-error_message = ""
-pipeline_name = ""
-load_type = ""
-start_time_str = ""
-
 from datetime import datetime
 
 CTRL_WATERMARK = "metadata.pipeline_watermark"
 CTRL_RUN_LOG = "metadata.pipeline_run_log"
 
-run_start = datetime.fromisoformat(start_time_str) if start_time_str else datetime.now()
-run_end = datetime.now()
+run_start = (datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
+if start_time_str
+else datetime.now(timezone.utc))
+run_end = datetime.now(timezone.utc)
 duration_seconds = int((run_end - run_start).total_seconds())
 
-# Only updates if a watermark row already exists for this table — if this
-# is the table's very first-ever run and it fails before NB_UpdateWatermark
-# has ever inserted a row, this UPDATE affects 0 rows silently. Acceptable:
-# NB_GetWatermark will fall back to default_watermark again next run either way.
 spark.sql(f"""
     UPDATE {CTRL_WATERMARK}
     SET last_run_status = 'Failed',

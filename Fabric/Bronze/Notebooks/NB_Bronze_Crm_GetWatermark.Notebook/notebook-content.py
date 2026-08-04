@@ -20,37 +20,21 @@
 # META   }
 # META }
 
-# CELL ********************
+# MARKDOWN ********************
 
-# ── Parameters cell ──
-table_name = ""
-schema_name = ""
-default_watermark = ""
-initial_load_column = ""
-incremental_column = ""
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
+# ### Logic cell
 
 # CELL ********************
 
-# ── Logic cell ──
 from pyspark.sql import functions as F
+from datetime import datetime, timezone
+
+run_start = datetime.now(timezone.utc).isoformat()
 
 if not table_name:
-    mssparkutils.notebook.exit(f"{default_watermark}|{initial_load_column}")
+    mssparkutils.notebook.exit(f"{default_watermark}|{initial_load_column}|{run_start}|")
 
 CTRL_TABLE = "metadata.pipeline_watermark"
-
-# No table-creation logic here anymore — NB_Bronze_Meta_Setup guarantees
-# this table exists before any pipeline runs. If it's missing, this will
-# correctly fail loudly rather than silently self-healing, which is the
-# right behavior: a missing control table means setup wasn't run, and
-# that should surface as an error, not be papered over mid-pipeline.
 
 row = (
     spark.table(CTRL_TABLE)
@@ -66,10 +50,13 @@ else:
     watermark = default_watermark
     effective_column = initial_load_column
 
+# Ready-to-use SQL query (CPY_Incrementalwill consume this as one plain string, no pipeline-side concat() needed.)
+incremental_query = f"SELECT * FROM [{schema_name}].{table_name} WHERE {effective_column} > '{watermark}'"
+
 print(f"[{schema_name}].[{table_name}] → column={effective_column}, watermark={watermark}")
+print(f"Built query: {incremental_query}")
 
-mssparkutils.notebook.exit(f"{watermark}|{effective_column}")
-
+mssparkutils.notebook.exit(f"{watermark}|{effective_column}|{run_start}|{incremental_query}")
 
 # METADATA ********************
 

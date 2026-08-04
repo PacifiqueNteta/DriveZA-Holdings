@@ -20,12 +20,16 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# ### Parameter cell
+
 # CELL ********************
 
-# ── Parameters cell ──
-source_table_name = ""
-schema_name = ""
-destination_table_name = ""
+server = "Pacifique\SQLEXPRESS"
+database = "DriveZa"
+sql_username = "PacificNt"
+sql_password = "Paco@2404"
 
 # METADATA ********************
 
@@ -34,9 +38,12 @@ destination_table_name = ""
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# ### Logic Cell
+
 # CELL ********************
 
-# ── Logic cell ──
 from datetime import datetime
 import json
 
@@ -45,12 +52,19 @@ changes = {"new_columns": [], "removed_columns": [], "type_changes": []}
 CHANGE_LOG_TABLE = "metadata.schema_change_log"
 
 if not spark.catalog.tableExists(bronze_table):
-    print(f"{bronze_table} does not exist yet — first load, nothing to compare.")
+    print(f"{bronze_table} does not exist yet, first load, nothing to compare.")
     mssparkutils.notebook.exit("no_drift_first_load")
 
-# Placeholder read — replace with a lightweight schema-only read against
-# the actual source connection (e.g. LIMIT 0 query via JDBC).
-source_df = spark.read.table(f"source_{schema_name}.{source_table_name}")
+jdbc_url = f"jdbc:sqlserver://{server}:1433;database={database};encrypt=true;trustServerCertificate=false"
+
+source_df = (
+    spark.read.format("jdbc")
+    .option("url", jdbc_url)
+    .option("query", f"SELECT * FROM [{schema_name}].[{source_table_name}] WHERE 1=0")
+    .option("user", sql_username)
+    .option("password", sql_password)
+    .load()
+)
 
 existing_schema = {f.name: f.dataType.simpleString() for f in spark.table(bronze_table).schema.fields}
 incoming_schema = {f.name: f.dataType.simpleString() for f in source_df.schema.fields}
@@ -68,7 +82,7 @@ for col in incoming_schema:
         changes["type_changes"].append((col, existing_schema[col], incoming_schema[col]))
 
 log_rows = []
-now = datetime.now().isoformat()
+now = datetime.now()
 
 for col, dtype in changes["new_columns"]:
     spark.sql(f"ALTER TABLE {bronze_table} ADD COLUMN {col} {dtype}")
@@ -77,7 +91,7 @@ for col, dtype in changes["new_columns"]:
                       "new_column", col, None, dtype, now, True, False))
 
 for col in changes["removed_columns"]:
-    print(f"MANUAL REVIEW REQUIRED — column removed from source: {col}")
+    print(f"MANUAL REVIEW REQUIRED, column removed from source: {col}")
     log_rows.append((schema_name, source_table_name, destination_table_name,
                       "removed_column", col, existing_schema.get(col), None, now, False, True))
 
