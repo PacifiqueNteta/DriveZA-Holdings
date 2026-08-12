@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "TridentNotebook",
+        "typeProperties": {
+          "notebookId": "f863a957-bcd6-9352-4a64-089ecfa0dabc",
+          "workspaceId": "00000000-0000-0000-0000-000000000000"
+        },
+        "policy": {
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "NB_Silver_Transform",
+        "dependsOn": []
+      }
+    ]
+  }
+}

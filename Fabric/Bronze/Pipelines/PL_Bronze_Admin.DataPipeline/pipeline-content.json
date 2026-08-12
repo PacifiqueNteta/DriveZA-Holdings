@@ -2,7 +2,7 @@
   "properties": {
     "activities": [
       {
-        "type": "Copy",
+        "type": "Lookup",
         "typeProperties": {
           "source": {
             "type": "DelimitedTextSource",
@@ -10,74 +10,40 @@
               "type": "DelimitedTextReadSettings"
             },
             "storeSettings": {
-              "type": "HttpReadSettings",
-              "requestMethod": "GET"
+              "type": "LakehouseReadSettings",
+              "recursive": true,
+              "enablePartitionDiscovery": false
+            }
+          },
+          "datasetSettings": {
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "LakehouseLocation",
+                "folderPath": "Configurations",
+                "fileName": "admin_files_config.csv"
+              },
+              "columnDelimiter": ",",
+              "quoteChar": "\"",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true
             },
-            "datasetSettings": {
-              "type": "DelimitedText",
-              "typeProperties": {
-                "location": {
-                  "type": "HttpServerLocation"
+            "schema": [],
+            "linkedService": {
+              "name": "LH_DRZ_BRONZE",
+              "properties": {
+                "type": "Lakehouse",
+                "typeProperties": {
+                  "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
+                  "workspaceId": "00000000-0000-0000-0000-000000000000",
+                  "rootFolder": "Files"
                 },
-                "columnDelimiter": ",",
-                "quoteChar": "\"",
-                "escapeChar": "\\",
-                "firstRowAsHeader": true
-              },
-              "schema": [],
-              "externalReferences": {
-                "connection": "7292a07c-3e7d-4459-80d5-8e5f5c742b2b"
-              },
-              "annotations": []
-            }
-          },
-          "sink": {
-            "type": "DelimitedTextSink",
-            "formatSettings": {
-              "type": "DelimitedTextWriteSettings",
-              "fileExtension": ".csv"
+                "annotations": []
+              }
             },
-            "storeSettings": {
-              "type": "AzureBlobStorageWriteSettings"
-            },
-            "datasetSettings": {
-              "type": "DelimitedText",
-              "typeProperties": {
-                "location": {
-                  "type": "LakehouseLocation",
-                  "folderPath": "Raw_Landing",
-                  "fileName": "employees.csv"
-                },
-                "columnDelimiter": ",",
-                "quoteChar": "\"",
-                "escapeChar": "\\",
-                "firstRowAsHeader": true
-              },
-              "schema": [],
-              "linkedService": {
-                "name": "LH_DRZ_BRONZE",
-                "properties": {
-                  "type": "Lakehouse",
-                  "typeProperties": {
-                    "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
-                    "workspaceId": "00000000-0000-0000-0000-000000000000",
-                    "rootFolder": "Files"
-                  },
-                  "annotations": []
-                }
-              },
-              "annotations": []
-            }
+            "annotations": []
           },
-          "translator": {
-            "type": "TabularTranslator",
-            "typeConversion": true,
-            "typeConversionSettings": {
-              "allowDataTruncation": true,
-              "treatBooleanAsNumber": false
-            }
-          },
-          "enableStaging": false
+          "firstRowOnly": false
         },
         "policy": {
           "timeout": "0.12:00:00",
@@ -86,123 +52,361 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "Copydata_Employees",
+        "name": "LKP_AdminConfig",
         "dependsOn": []
       },
       {
-        "type": "Copy",
+        "type": "Filter",
         "typeProperties": {
-          "source": {
-            "type": "DelimitedTextSource",
-            "formatSettings": {
-              "type": "DelimitedTextReadSettings"
-            },
-            "storeSettings": {
-              "type": "HttpReadSettings",
-              "requestMethod": "GET"
-            },
-            "datasetSettings": {
-              "type": "DelimitedText",
-              "typeProperties": {
-                "location": {
-                  "type": "HttpServerLocation"
-                },
-                "columnDelimiter": ",",
-                "quoteChar": "\"",
-                "escapeChar": "\\",
-                "firstRowAsHeader": true
-              },
-              "schema": [],
-              "externalReferences": {
-                "connection": "75c1fe78-2070-41ea-b19c-a447d3532c91"
-              },
-              "annotations": []
-            }
+          "items": {
+            "value": "@activity('LKP_AdminConfig').output.value",
+            "type": "Expression"
           },
-          "sink": {
-            "type": "DelimitedTextSink",
-            "formatSettings": {
-              "type": "DelimitedTextWriteSettings",
-              "fileExtension": ".csv"
-            },
-            "storeSettings": {
-              "type": "AzureBlobStorageWriteSettings"
-            },
-            "datasetSettings": {
-              "type": "DelimitedText",
-              "typeProperties": {
-                "location": {
-                  "type": "LakehouseLocation",
-                  "folderPath": "Raw_Landing",
-                  "fileName": "branches.csv"
-                },
-                "columnDelimiter": ",",
-                "quoteChar": "\"",
-                "escapeChar": "\\",
-                "firstRowAsHeader": true
-              },
-              "schema": [],
-              "linkedService": {
-                "name": "LH_DRZ_BRONZE",
-                "properties": {
-                  "type": "Lakehouse",
-                  "typeProperties": {
-                    "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
-                    "workspaceId": "00000000-0000-0000-0000-000000000000",
-                    "rootFolder": "Files"
-                  },
-                  "annotations": []
-                }
-              },
-              "annotations": []
-            }
-          },
-          "translator": {
-            "type": "TabularTranslator",
-            "typeConversion": true,
-            "typeConversionSettings": {
-              "allowDataTruncation": true,
-              "treatBooleanAsNumber": false
-            }
-          },
-          "enableStaging": false
+          "condition": {
+            "value": "@equals(trim(string(item().is_active)), '1')",
+            "type": "Expression"
+          }
         },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "Copydata_Branches",
-        "dependsOn": []
-      },
-      {
-        "type": "TridentNotebook",
-        "typeProperties": {
-          "notebookId": "57a4fd96-1c84-8d49-4cae-abcdc6344081",
-          "workspaceId": "00000000-0000-0000-0000-000000000000"
-        },
-        "externalReferences": {
-          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "NB_Table_Loading",
+        "name": "FLRT_ActivesFiles",
         "dependsOn": [
           {
-            "activity": "Copydata_Employees",
+            "activity": "LKP_AdminConfig",
             "dependencyConditions": [
               "Succeeded"
             ]
+          }
+        ]
+      },
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "items": {
+            "value": "@activity('FLRT_ActivesFiles').output.value",
+            "type": "Expression"
           },
+          "activities": [
+            {
+              "type": "Switch",
+              "typeProperties": {
+                "on": {
+                  "value": "@item().source_system",
+                  "type": "Expression"
+                },
+                "cases": [
+                  {
+                    "value": "github_hr",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "BinarySource",
+                            "formatSettings": {
+                              "type": "BinaryReadSettings"
+                            },
+                            "storeSettings": {
+                              "type": "HttpReadSettings",
+                              "requestMethod": "GET"
+                            },
+                            "datasetSettings": {
+                              "type": "Binary",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "HttpServerLocation"
+                                }
+                              },
+                              "externalReferences": {
+                                "connection": "7292a07c-3e7d-4459-80d5-8e5f5c742b2b"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "sink": {
+                            "type": "BinarySink",
+                            "storeSettings": {
+                              "type": "AzureBlobStorageWriteSettings"
+                            },
+                            "datasetSettings": {
+                              "type": "Binary",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": {
+                                    "value": "@concat('Raw_Landing/', item().source_system)",
+                                    "type": "Expression"
+                                  },
+                                  "fileName": {
+                                    "value": "@item().file_name",
+                                    "type": "Expression"
+                                  }
+                                }
+                              },
+                              "linkedService": {
+                                "name": "LH_DRZ_BRONZE",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
+                                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "CPY_Github_Hr",
+                        "dependsOn": []
+                      },
+                      {
+                        "type": "TridentNotebook",
+                        "typeProperties": {
+                          "notebookId": "57a4fd96-1c84-8d49-4cae-abcdc6344081",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "parameters": {
+                            "source_system": {
+                              "value": {
+                                "value": "@item().source_system",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "file_name": {
+                              "value": {
+                                "value": "@item().file_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_schema": {
+                              "value": {
+                                "value": "@item().destination_schema",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_table_name": {
+                              "value": {
+                                "value": "@item().destination_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "load_type": {
+                              "value": "@item().load_type",
+                              "type": "string"
+                            },
+                            "column_delimiter": {
+                              "value": "@item().column_delimiter",
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "externalReferences": {
+                          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "NB_Table_Loading_Hr",
+                        "dependsOn": [
+                          {
+                            "activity": "CPY_Github_Hr",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "github_admin",
+                    "activities": [
+                      {
+                        "type": "Copy",
+                        "typeProperties": {
+                          "source": {
+                            "type": "DelimitedTextSource",
+                            "formatSettings": {
+                              "type": "DelimitedTextReadSettings"
+                            },
+                            "storeSettings": {
+                              "type": "HttpReadSettings",
+                              "requestMethod": "GET"
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "HttpServerLocation"
+                                },
+                                "columnDelimiter": ",",
+                                "rowDelimiter": "\n",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "externalReferences": {
+                                "connection": "75c1fe78-2070-41ea-b19c-a447d3532c91"
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "sink": {
+                            "type": "DelimitedTextSink",
+                            "formatSettings": {
+                              "type": "DelimitedTextWriteSettings",
+                              "fileExtension": ".txt"
+                            },
+                            "storeSettings": {
+                              "type": "AzureBlobStorageWriteSettings"
+                            },
+                            "datasetSettings": {
+                              "type": "DelimitedText",
+                              "typeProperties": {
+                                "location": {
+                                  "type": "LakehouseLocation",
+                                  "folderPath": "@concat('Raw_Landing/', item().source_system)",
+                                  "fileName": {
+                                    "value": "@item().file_name",
+                                    "type": "Expression"
+                                  }
+                                },
+                                "columnDelimiter": ",",
+                                "quoteChar": "\"",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true
+                              },
+                              "schema": [],
+                              "linkedService": {
+                                "name": "LH_DRZ_BRONZE",
+                                "properties": {
+                                  "type": "Lakehouse",
+                                  "typeProperties": {
+                                    "artifactId": "a6e675f3-4f02-bf59-467c-63c27ef943d7",
+                                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                                    "rootFolder": "Files"
+                                  },
+                                  "annotations": []
+                                }
+                              },
+                              "annotations": []
+                            }
+                          },
+                          "translator": {
+                            "type": "TabularTranslator",
+                            "typeConversion": true,
+                            "typeConversionSettings": {
+                              "allowDataTruncation": true,
+                              "treatBooleanAsNumber": false
+                            }
+                          },
+                          "enableStaging": false
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "CPY_GitHub_Admin",
+                        "dependsOn": []
+                      },
+                      {
+                        "type": "TridentNotebook",
+                        "typeProperties": {
+                          "notebookId": "57a4fd96-1c84-8d49-4cae-abcdc6344081",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "parameters": {
+                            "source_system": {
+                              "value": {
+                                "value": "@item().source_system",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "file_name": {
+                              "value": {
+                                "value": "@item().file_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_schema": {
+                              "value": {
+                                "value": "@item().destination_schema",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "destination_table_name": {
+                              "value": {
+                                "value": "@item().destination_table_name",
+                                "type": "Expression"
+                              },
+                              "type": "string"
+                            },
+                            "load_type": {
+                              "value": "@item().load_type",
+                              "type": "string"
+                            },
+                            "column_delimiter": {
+                              "value": "@item().column_delimiter",
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "externalReferences": {
+                          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
+                        },
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureInput": false,
+                          "secureOutput": false
+                        },
+                        "name": "NB_Table_Loading_Admin",
+                        "dependsOn": [
+                          {
+                            "activity": "CPY_GitHub_Admin",
+                            "dependencyConditions": [
+                              "Succeeded"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "defaultActivities": []
+              },
+              "name": "SW_SourceSystem",
+              "dependsOn": []
+            }
+          ]
+        },
+        "name": "ForEach_AdminFiles",
+        "dependsOn": [
           {
-            "activity": "Copydata_Branches",
+            "activity": "FLRT_ActivesFiles",
             "dependencyConditions": [
               "Succeeded"
             ]
