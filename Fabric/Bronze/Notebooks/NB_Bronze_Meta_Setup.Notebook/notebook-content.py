@@ -44,12 +44,14 @@ print("Schema 'metadata' ready.")
 
 # MARKDOWN ********************
 
-# ###### 2.Table 'pipeline_watermark' 
+# ###### 2.Table 'pipeline_control' 
 
 # CELL ********************
 
 spark.sql("""
-    CREATE TABLE IF NOT EXISTS metadata.pipeline_watermark (
+    CREATE TABLE IF NOT EXISTS metadata.pipeline_control (
+        source_type             STRING,
+        source_system           STRING,
         schema_name             STRING NOT NULL,
         table_name               STRING NOT NULL,
         max_incremental_value      STRING,
@@ -78,7 +80,10 @@ print("Table 'metadata.pipeline_watermark' ready.")
 
 spark.sql("""
     CREATE TABLE IF NOT EXISTS metadata.pipeline_run_log (
+        pipeline_run_id             STRING,
         pipeline_name               STRING,
+        source_type               STRING,
+        source_system               STRING,
         schema_name                 STRING,
         table_name                  STRING,
         destination_table_name      STRING,
@@ -105,28 +110,41 @@ print("Table 'metadata.pipeline_run_log' ready.")
 
 # MARKDOWN ********************
 
-# 4. Table 'schema_change_log'
+# 4. Table 'data_quality'
 
 # CELL ********************
 
 spark.sql("""
-    CREATE TABLE IF NOT EXISTS metadata.schema_change_log (
-        change_id                STRING,
-        schema_name              STRING,
-        source_table_name        STRING,
-        destination_table_name   STRING,
-        change_type              STRING,   
-        column_name              STRING,
-        old_type                 STRING,
-        new_type                 STRING,
-        detected_at              TIMESTAMP,
-        applied_automatically    BOOLEAN,
-        requires_manual_review   BOOLEAN
-    )
-    USING DELTA
+CREATE TABLE IF NOT EXISTS metadata.data_quality
+(
+    source_type                STRING,
+    source_name                STRING,
+
+    schema_name               STRING,
+    table_name                STRING,
+
+    row_count                 BIGINT,
+    column_count              INT,
+
+    duplicate_count           BIGINT,
+    duplicate_check_result    STRING,
+
+    null_key_count            BIGINT,
+    null_check_result         STRING,
+
+    freshness_days            INT,
+    freshness_check_result    STRING,
+
+    overall_score             DECIMAL(5,2),
+    overall_status            STRING,
+
+    first_run_at              TIMESTAMP,
+    updated_at                TIMESTAMP
+)
+USING DELTA
 """)
 
-print("Table 'metadata.schema_change_log' ready.")
+print("Table 'metadata.data_quality' ready.")
 
 # METADATA ********************
 
@@ -137,18 +155,266 @@ print("Table 'metadata.schema_change_log' ready.")
 
 # MARKDOWN ********************
 
-# 5. Verification
+# 5.Table 'data_quality_config'
 
 # CELL ********************
 
-print("\ Verifying tables")
+spark.sql("""
+CREATE TABLE IF NOT EXISTS metadata.data_quality
+(
+    quality_run_id     STRING,
+    source_type        STRING,
+    source_name        STRING,
+    schema_name        STRING,
+    table_name         STRING,
+    check_name         STRING,
+    check_result       STRING,
+    check_value        STRING,
+    checked_at         TIMESTAMP
+)
+USING DELTA
+""")
 
-tables = spark.sql("SHOW TABLES IN metadata").collect()
-print(f"Tables in 'metadata' schema: {[t['tableName'] for t in tables]}")
+print("metadata.data_quality ready.")
 
-for t in ["pipeline_watermark", "pipeline_run_log", "schema_change_log"]:
-    count = spark.table(f"metadata.{t}").count()
-    print(f"  metadata.{t}: {count} rows")
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# vw_data_quality_summary
+
+# CELL ********************
+
+spark.sql("""
+CREATE OR REPLACE VIEW metadata.vw_data_quality_summary AS
+
+WITH dq AS
+(
+    SELECT *
+    FROM metadata.data_quality
+)
+
+SELECT
+
+    quality_run_id,
+    source_type,
+    source_name,
+    schema_name,
+    table_name,
+
+    MAX(
+        CASE
+            WHEN check_name = 'ROW_COUNT'
+            THEN CAST(check_value AS BIGINT)
+        END
+    ) AS row_count,
+
+    MAX(
+        CASE
+            WHEN check_name = 'COLUMN_COUNT'
+            THEN CAST(check_value AS INT)
+        END
+    ) AS column_count,
+
+    MAX(
+        CASE
+            WHEN check_name LIKE 'DUPLICATE%'
+            THEN check_result
+        END
+    ) AS duplicate_check_result,
+
+    MAX(
+        CASE
+            WHEN check_name LIKE 'DUPLICATE%'
+            THEN CAST(check_value AS BIGINT)
+        END
+    ) AS duplicate_count,
+
+    MAX(
+        CASE
+            WHEN check_name LIKE 'NULL%'
+            THEN check_result
+        END
+    ) AS null_check_result,
+
+    MAX(
+        CASE
+            WHEN check_name LIKE 'NULL%'
+            THEN CAST(check_value AS BIGINT)
+        END
+    ) AS null_count,
+
+    ROUND(
+        (
+            SUM(
+                CASE
+                    WHEN check_result = 'PASS'
+                    THEN 1
+                    ELSE 0
+                END
+            ) * 100.0
+        )
+        /
+        COUNT(*)
+    ,2) AS overall_score
+
+FROM dq
+
+GROUP BY
+
+    quality_run_id,
+    source_type,
+    source_name,
+    schema_name,
+    table_name
+""")
+
+print("metadata.vw_data_quality_summary created.")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+spark.sql("""
+CREATE OR REPLACE MATERIALIZED LAKE VIEW metadata.data_quality_summary AS
+
+WITH latest_check AS
+(
+    SELECT
+        source_type,
+        source_name,
+        schema_name,
+        table_name,
+        MAX(checked_at) AS latest_run_at
+    FROM metadata.data_quality
+    GROUP BY
+        source_type,
+        source_name,
+        schema_name,
+        table_name
+)
+
+SELECT
+
+    d.source_type,
+    d.source_name,
+    d.schema_name,
+    d.table_name,
+
+    MAX(
+        CASE
+            WHEN d.check_name = 'ROW_COUNT'
+            THEN CAST(d.check_value AS BIGINT)
+        END
+    ) AS row_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name = 'COLUMN_COUNT'
+            THEN CAST(d.check_value AS INT)
+        END
+    ) AS column_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'DUPLICATE%'
+            THEN d.check_result
+        END
+    ) AS duplicate_check_result,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'DUPLICATE%'
+            THEN CAST(d.check_value AS BIGINT)
+        END
+    ) AS duplicate_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'NULL%'
+            THEN d.check_result
+        END
+    ) AS null_check_result,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'NULL%'
+            THEN CAST(d.check_value AS BIGINT)
+        END
+    ) AS null_count,
+
+    ROUND(
+        (
+            SUM(
+                CASE
+                    WHEN d.check_result = 'PASS'
+                    THEN 1
+                    ELSE 0
+                END
+            ) * 100.0
+        ) / COUNT(*),
+        2
+    ) AS overall_score,
+
+    CASE
+        WHEN ROUND(
+            (
+                SUM(
+                    CASE
+                        WHEN d.check_result = 'PASS'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) * 100.0
+            ) / COUNT(*),
+            2
+        ) = 100
+        THEN 'Excellent'
+
+        WHEN ROUND(
+            (
+                SUM(
+                    CASE
+                        WHEN d.check_result = 'PASS'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) * 100.0
+            ) / COUNT(*),
+            2
+        ) >= 75
+        THEN 'Good'
+
+        ELSE 'Warning'
+    END AS overall_status,
+
+    MAX(d.checked_at) AS latest_run_at
+
+FROM metadata.data_quality d
+INNER JOIN latest_check l
+    ON d.source_type = l.source_type
+   AND d.source_name = l.source_name
+   AND d.schema_name = l.schema_name
+   AND d.table_name = l.table_name
+
+GROUP BY
+
+    d.source_type,
+    d.source_name,
+    d.schema_name,
+    d.table_name;
+""")
+
 
 # METADATA ********************
 

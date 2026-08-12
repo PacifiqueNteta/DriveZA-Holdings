@@ -23,8 +23,9 @@
 # CELL ********************
 
 from datetime import datetime
+import uuid
 
-CTRL_WATERMARK = "metadata.pipeline_watermark"
+CTRL_CONTROL = "metadata.pipeline_control"
 CTRL_RUN_LOG = "metadata.pipeline_run_log"
 
 run_start = (datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
@@ -35,21 +36,24 @@ duration_seconds = int((run_end - run_start).total_seconds())
 
 spark.sql(f"""
     UPDATE {CTRL_WATERMARK}
-    SET last_run_status = 'Failed',
+    SET 
+        source_type = '{SOURCE_TYPE}',
+        source_system = '{SOURCE_SYSTEM}',
+        last_run_status = 'Failed',
         last_run_end_time = current_timestamp(),
         updated_at = current_timestamp()
-    WHERE table_name = '{table_name}' AND schema_name = '{schema_name}'
+    WHERE source_system = '{SOURCE_SYSTEM}' AND table_name = '{table_name}' AND schema_name = '{schema_name}' 
 """)
 
 safe_error = error_message.replace("'", "''")
 
 spark.sql(f"""
     INSERT INTO {CTRL_RUN_LOG}
-    (pipeline_name, schema_name, table_name, destination_table_name, load_type,
+    (pipeline_run_id, pipeline_name, source_type, source_system, schema_name, table_name, destination_table_name, load_type,
      run_status, rows_read, rows_written, error_message, start_time, end_time, duration_seconds)
     VALUES (
-        '{pipeline_name}', '{schema_name}', '{table_name}', '{destination_table_name}', '{load_type}',
-        'Failed', NULL, NULL, '{safe_error}',
+        '{pipeline_run_id}', '{pipeline_name}', '{SOURCE_TYPE}', '{SOURCE_SYSTEM}', '{schema_name}', '{table_name}', '{destination_table_name}', '{load_type}',
+        'Failed', 0, 0, '{safe_error}',
         '{run_start.isoformat()}', '{run_end.isoformat()}', {duration_seconds}
     )
 """)

@@ -34,11 +34,15 @@ run_start = datetime.now(timezone.utc).isoformat()
 if not table_name:
     mssparkutils.notebook.exit(f"{default_watermark}|{initial_load_column}|{run_start}|")
 
-CTRL_TABLE = "metadata.pipeline_watermark"
+CTRL_TABLE = "metadata.pipeline_control"
+
+SOURCE_TYPE = "sqlserver"
+SOURCE_SYSTEM = "CRM"
 
 row = (
     spark.table(CTRL_TABLE)
-    .filter((F.col("table_name") == table_name) & (F.col("schema_name") == schema_name))
+    .filter((F.col("table_name") == table_name) 
+    & (F.col("schema_name") == schema_name))
     .select("max_incremental_value")
     .collect()
 )

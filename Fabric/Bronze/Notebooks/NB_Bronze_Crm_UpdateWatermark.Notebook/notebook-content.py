@@ -25,11 +25,15 @@
 # ── Logic cell ──
 from pyspark.sql import functions as F
 from datetime import datetime, timezone
+import uuid
 
-
-
-CTRL_WATERMARK = "metadata.pipeline_watermark"
+CTRL_CONTROL = "metadata.pipeline_control"
 CTRL_RUN_LOG = "metadata.pipeline_run_log"
+
+SOURCE_TYPE = "sqlserver"
+SOURCE_SYSTEM = "CRM"
+pipeline_run_id = str(uuid.uuid4())
+
 bronze_table = f"{schema_name}.{destination_table}"
 
 run_start = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
@@ -57,8 +61,9 @@ else:
     new_watermark = None
 
 exists = (
-    spark.table(CTRL_WATERMARK)
+    spark.table(CTRL_CONTROL)
     .filter(
+        (F.col("source_system") == SOURCE_SYSTEM) &
         (F.col("table_name") == table_name) &
         (F.col("schema_name") == schema_name)
     )
@@ -74,22 +79,28 @@ watermark_value = (
 if exists:
 
     spark.sql(f"""
-        UPDATE {CTRL_WATERMARK}
+        UPDATE {CTRL_CONTROL}
         SET
+            source_type = '{SOURCE_TYPE}',
+            source_system = '{SOURCE_SYSTEM}',
             max_incremental_value = {watermark_value},
             last_run_status = 'Succeeded',
             last_run_end_time = current_timestamp(),
             rows_copied = {rows_copied},
             updated_at = current_timestamp()
-        WHERE table_name = '{table_name}'
-          AND schema_name = '{schema_name}'
+        WHERE 
+              source_system = '{SOURCE_SYSTEM}'
+        AND  table_name = '{table_name}'
+        AND schema_name = '{schema_name}'
     """)
 
 else:
 
     spark.sql(f"""
-        INSERT INTO {CTRL_WATERMARK}
+        INSERT INTO {CTRL_CONTROL}
         (
+            source_type,
+            source_system,
             schema_name,
             table_name,
             max_incremental_value,
@@ -101,6 +112,8 @@ else:
         )
         VALUES
         (
+            '{SOURCE_TYPE}',
+            '{SOURCE_SYSTEM}',
             '{schema_name}',
             '{table_name}',
             {watermark_value},
@@ -112,14 +125,22 @@ else:
         )
     """)
 
-run_status = "Succeeded" if new_watermark is not None else "Succeeded_NoRows"
+if load_type.lower() == "full":
+     run_status = "Succeeded"
+else:
+     run_status = (
+         "Succeeded"
+     if new_watermark is not None
+     else "Succeeded_NoRows"
+)
 
+#Run_Log
 spark.sql(f"""
     INSERT INTO {CTRL_RUN_LOG}
-    (pipeline_name, schema_name, table_name, destination_table_name, load_type,
+    (pipeline_run_id, pipeline_name, source_type, source_system, schema_name, table_name, destination_table_name, load_type,
      run_status, rows_read, rows_written, error_message, start_time, end_time, duration_seconds)
     VALUES (
-        '{pipeline_name}', '{schema_name}', '{table_name}', '{destination_table}', '{load_type}',
+        '{pipeline_run_id}','{pipeline_name}','{SOURCE_TYPE}','{SOURCE_SYSTEM}', '{schema_name}', '{table_name}', '{destination_table}', '{load_type}',
         '{run_status}', {rows_copied}, {rows_copied}, NULL,
         '{run_start.isoformat()}', '{run_end.isoformat()}', {duration_seconds}
     )
