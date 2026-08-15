@@ -127,3 +127,82 @@ spark.sql("SELECT * FROM metadata.silver_config ORDER BY schema_name, table_name
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# CELL ********************
+
+
+
+spark.sql("""
+CREATE TABLE IF NOT EXISTS metadata.value_normalization_map (
+    schema_name          STRING,
+    table_name           STRING,
+    column_name          STRING,
+    raw_value            STRING,
+    standardized_value   STRING
+)
+""")
+
+
+country_fixes = [
+    ("French",    "France"),
+    ("Germa",     "Germany"),
+    ("Zimbabwea", "Zimbabwe"),
+    ("Botswaa",   "Botswana"),
+    ("British",   "United Kingdom"),
+    ("Mozambica", "Mozambique"),
+    ("America",   "United States"),
+]
+
+normalization_seed = [
+    ("crm", "customers", col, raw, standardized)
+    for col in ("country", "license_country")
+    for (raw, standardized) in country_fixes
+]
+
+seed_df = spark.createDataFrame(
+    normalization_seed,
+    schema="""
+        schema_name STRING,
+        table_name STRING,
+        column_name STRING,
+        raw_value STRING,
+        standardized_value STRING
+    """
+)
+
+seed_df.createOrReplaceTempView("value_normalization_seed")
+
+spark.sql("""
+MERGE INTO metadata.value_normalization_map t
+USING value_normalization_seed s
+ON  t.schema_name = s.schema_name
+AND t.table_name  = s.table_name
+AND t.column_name = s.column_name
+AND t.raw_value    = s.raw_value
+WHEN MATCHED THEN UPDATE SET
+    t.standardized_value = s.standardized_value
+WHEN NOT MATCHED THEN INSERT (schema_name, table_name, column_name, raw_value, standardized_value)
+    VALUES (s.schema_name, s.table_name, s.column_name, s.raw_value, s.standardized_value)
+""")
+
+print("Value normalization map seeded.")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC UPDATE LH_DRZ_SILVER.metadata.pipeline_control
+# MAGIC SET last_watermark_value = NULL
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }

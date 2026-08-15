@@ -110,6 +110,7 @@ PIPELINE_NAME = "PL_Silver_Load"
 CTRL_TABLE = "metadata.pipeline_control"
 RUN_LOG_TABLE = "metadata.pipeline_run_log"
 BUSINESS_KEY_CONFIG_TABLE = "metadata.silver_config"
+VALUE_NORMALIZATION_TABLE = "metadata.value_normalization_map"
 
 # Failure alerting via Fabric Business Events (preview). Requires a
 # Business Event schema created in advance in Real-Time hub, and an
@@ -284,7 +285,8 @@ def process_table(
     table_name,
     last_watermark,
     business_keys,
-    configured_watermark_column
+    configured_watermark_column,
+    value_normalizations
 ):
     """
     Extract, cleanse, deduplicate, hash, and merge/write a single
@@ -314,8 +316,17 @@ def process_table(
             f"{raw_df.columns}"
         )
 
+    if raw_watermark_col is None:
+ 
+        raise ValueError(
+            f"Configured watermark column "
+            f"'{configured_watermark_column}' not found in "
+            f"{schema_name}.{table_name}. Available columns: "
+            f"{raw_df.columns}"
+        )
+ 
     if last_watermark is not None:
-
+ 
         logger.info(
             "Incremental load",
             extra={"extra_fields": {
@@ -325,13 +336,13 @@ def process_table(
                 "last_watermark": str(last_watermark)
             }}
         )
-
+ 
         raw_df = raw_df.filter(
             F.col(raw_watermark_col) > F.lit(last_watermark)
         )
-
+ 
     else:
-
+ 
         logger.info(
             "Full load - no prior watermark",
             extra={"extra_fields": {
@@ -339,7 +350,7 @@ def process_table(
                 "table_name": table_name
             }}
         )
-
+ 
     # Post-rename name, used for everything after the rename/select
     # below (aggregation, window ordering) - standardize_name() is
     # idempotent, so this matches whatever the rename step produces.
@@ -378,6 +389,54 @@ def process_table(
 
     df = df.select(*cleanse_exprs)
 
+    # Phone number formatting: any column whose name contains "phone"
+    # is cast to string, stripped of non-digit characters, and
+    # left-padded to 10 digits if it's currently 1-9 digits. 10+ digit
+    # values (e.g. with a country code) pass through unchanged - no
+    # country-code normalization here. A fully-empty result after
+    # stripping becomes NULL rather than a fabricated value.
+    phone_exprs = []
+ 
+    for field in df.schema.fields:
+ 
+        if "phone" in field.name.lower():
+ 
+            digits_only = F.regexp_replace(
+                F.col(field.name).cast("string"), r"[^0-9]", ""
+            )
+ 
+            phone_exprs.append(
+                F.when(
+                    (F.length(digits_only) > 0) & (F.length(digits_only) < 10),
+                    F.lpad(digits_only, 10, "0")
+                )
+                .when(F.length(digits_only) == 0, F.lit(None))
+                .otherwise(digits_only)
+                .alias(field.name)
+            )
+ 
+        else:
+ 
+            phone_exprs.append(F.col(field.name))
+ 
+    df = df.select(*phone_exprs)
+
+    # Value normalization - config-driven corrections for known-bad
+    # free-text values (e.g. country name typos/truncations). No-op
+    # if this table has no rows in metadata.value_normalization_map.
+    for column_name, mapping in value_normalizations.items():
+
+        if column_name in df.columns:
+
+            df = df.replace(mapping, subset=[column_name])
+
+    # Target table name, computed early - needed by the empty-batch
+    # early exit below as well as the write path further down.
+    target_schema = standardize_name(schema_name)
+    target_table = standardize_name(table_name)
+    target_fqn = f"{target_schema}.{target_table}"
+
+
     # Row count + new watermark, single aggregation pass
     agg_row = df.agg(
         F.count(F.lit(1)).alias("row_count"),
@@ -391,6 +450,31 @@ def process_table(
         if agg_row["max_watermark"] is not None
         else last_watermark
     )
+    
+    # Empty-batch early exit - nothing new since the last successful
+    # run, so skip rename-already-done cleanup, dedup, hashing, and
+    # the MERGE entirely. Output semantics are identical to running
+    # a MERGE against an empty source (0/0/0), just without the
+    # wasted compute of getting there.
+    if rows_read == 0:
+
+        logger.info(
+            "No new records found",
+            extra={"extra_fields": {
+                "schema_name": schema_name,
+                "table_name": table_name
+            }}
+        )
+
+        return {
+            "target_fqn": target_fqn,
+            "business_key": ",".join(business_keys),
+            "rows_read": 0,
+            "rows_written": 0,
+            "inserted_rows": 0,
+            "updated_rows": 0,
+            "new_watermark": new_watermark
+        }
 
     # Business-key validation + early null filter
     missing_keys = [k for k in business_keys if k not in df.columns]
@@ -476,6 +560,13 @@ def process_table(
             f"t.{k} = s.{k}" for k in business_keys
         )
 
+        update_set = {
+            c: f"s.{c}"
+            for c in df.columns
+            if c not in ("record_created_at", "record_updated_at")
+        }
+        update_set["record_updated_at"] = "current_timestamp()"
+
         (
             delta_target.alias("t")
             .merge(
@@ -484,7 +575,7 @@ def process_table(
             )
             .whenMatchedUpdate(
                 condition="t.record_hash <> s.record_hash",
-                set={c: f"s.{c}" for c in df.columns}
+                set=update_set
             )
             .whenNotMatchedInsert(
                 values={c: f"s.{c}" for c in df.columns}
@@ -524,9 +615,10 @@ def process_table(
 
 # ## Table discovery + lookups
 # 
-# Builds the list of source tables to process, the per-table watermark lookup
-# (from the control table), and the per-table business-key/active-flag lookup
-# (from `metadata.silver_config`).
+# Builds the list of source tables to process, the per-table watermark lookup (from the
+# control table), the per-table business-key/watermark-column/active-flag lookup (from
+# `metadata.silver_config`), and the per-table/column value-normalization lookup (from
+# `metadata.value_normalization_map`). All lookups are keyed case-insensitively.
 
 # CELL ********************
 
@@ -600,8 +692,11 @@ if spark.catalog.tableExists(BUSINESS_KEY_CONFIG_TABLE):
     for row in config_rows:
 
         table_config_lookup[
-            (row.schema_name, row.table_name)
-        ] = {
+            (
+               row.schema_name.strip().lower(),
+               row.table_name.strip().lower()
+            )
+    ] = {
             "business_keys": [
                 standardize_name(k.strip())
                 for k in (row.business_key or "").split(",")
@@ -612,6 +707,30 @@ if spark.catalog.tableExists(BUSINESS_KEY_CONFIG_TABLE):
                 row.is_active if row.is_active is not None else True
             )
         }
+
+# Value normalization lookup (config-driven corrections, per column)
+value_normalization_lookup = {}
+
+if spark.catalog.tableExists(VALUE_NORMALIZATION_TABLE):
+
+    norm_rows = spark.sql(f"""
+        SELECT
+            schema_name,
+            table_name,
+            column_name,
+            raw_value,
+            standardized_value
+        FROM {VALUE_NORMALIZATION_TABLE}
+    """).collect()
+
+    for row in norm_rows:
+
+        key = (row.schema_name.lower(), row.table_name.lower())
+        value_normalization_lookup.setdefault(key, {})
+        value_normalization_lookup[key].setdefault(row.column_name, {})
+        value_normalization_lookup[key][row.column_name][
+            row.raw_value
+        ] = row.standardized_value
 
 # METADATA ********************
 
@@ -653,11 +772,15 @@ for (
     table_start = datetime.now()
 
     last_watermark = control_lookup.get(
-        (schema_name, table_name)
+        (schema_name.lower(), table_name.lower())
     )
 
     table_config = table_config_lookup.get(
-        (schema_name, table_name)
+        (schema_name.lower(), table_name.lower())
+    )
+
+    value_normalizations = value_normalization_lookup.get(
+        (schema_name.lower(), table_name.lower()), {}
     )
 
     run_status = "Succeeded"
@@ -729,6 +852,32 @@ for (
             error_message
         )
 
+    elif not table_config["watermark_column"]:
+
+        run_status = "Failed"
+        error_message = (
+            f"{schema_name}.{table_name} is marked active in "
+            f"{BUSINESS_KEY_CONFIG_TABLE} but has no "
+            f"watermark_column value set."
+        )
+
+        logger.error(
+            "Table processing failed",
+            extra={"extra_fields": {
+                "schema_name": schema_name,
+                "table_name": table_name,
+                "error": error_message
+            }}
+        )
+
+        publish_failure_alert(
+            source_type,
+            source_name,
+            schema_name,
+            table_name,
+            error_message
+        )
+
     else:
 
         try:
@@ -740,7 +889,8 @@ for (
                 table_name,
                 last_watermark,
                 table_config["business_keys"],
-                table_config["watermark_column"]
+                table_config["watermark_column"],
+                value_normalizations
             )
 
             logger.info(

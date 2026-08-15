@@ -22,20 +22,20 @@
 
 # CELL ********************
 
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 CTRL_CONTROL = "metadata.pipeline_control"
 CTRL_RUN_LOG = "metadata.pipeline_run_log"
 
 run_start = (datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
-if start_time_str
-else datetime.now(timezone.utc))
+ if start_time_str
+ else datetime.now(timezone.utc))
 run_end = datetime.now(timezone.utc)
 duration_seconds = int((run_end - run_start).total_seconds())
 
 spark.sql(f"""
-    UPDATE {CTRL_WATERMARK}
+    UPDATE {CTRL_CONTROL}
     SET 
         source_type = '{SOURCE_TYPE}',
         source_system = '{SOURCE_SYSTEM}',
