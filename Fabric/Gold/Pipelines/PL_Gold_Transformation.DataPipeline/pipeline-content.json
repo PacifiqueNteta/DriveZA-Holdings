@@ -1,0 +1,397 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadDimBranch]",
+          "storedProcedureParameters": {
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            },
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_DimBranch",
+        "dependsOn": []
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadDimPromotion]",
+          "storedProcedureParameters": {
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            },
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_DimPromotion",
+        "dependsOn": []
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadDimVehicle]",
+          "storedProcedureParameters": {
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            },
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_DimVehicle",
+        "dependsOn": []
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadDimEmployees]",
+          "storedProcedureParameters": {
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            },
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_DimEmployees",
+        "dependsOn": []
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadFactRental]",
+          "storedProcedureParameters": {
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            },
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_FactRental",
+        "dependsOn": [
+          {
+            "activity": "SP_Load_DimBranch",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "SP_Load_DimPromotion",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "SP_Load_DimVehicle",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "SP_Load_DimEmployees",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "SP_Load_DimCustomer",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadFactPayment]",
+          "storedProcedureParameters": {
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            },
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_FactPayment",
+        "dependsOn": [
+          {
+            "activity": "SP_Load_FactRental",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadFactIncident]",
+          "storedProcedureParameters": {
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            },
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_FactIncident",
+        "dependsOn": [
+          {
+            "activity": "SP_Load_FactRental",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadFactMaintenance]",
+          "storedProcedureParameters": {
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            },
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_FactMaintenance",
+        "dependsOn": [
+          {
+            "activity": "SP_Load_DimVehicle",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "SP_Load_DimBranch",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[Marketing].[uspLoadDimCustomer]",
+          "storedProcedureParameters": {
+            "pipeline_name": {
+              "value": "PL_Gold_Transform",
+              "type": "String"
+            },
+            "pipeline_run_id": {
+              "value": "@pipeline().RunId",
+              "type": "String"
+            }
+          }
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_Load_DimCustomer",
+        "dependsOn": []
+      }
+    ]
+  }
+}
