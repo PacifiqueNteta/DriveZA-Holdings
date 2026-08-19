@@ -203,11 +203,17 @@
                               "type": "string"
                             },
                             "load_type": {
-                              "value": "@item().load_type",
+                              "value": {
+                                "value": "@item().load_type",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             },
                             "column_delimiter": {
-                              "value": "@item().column_delimiter",
+                              "value": {
+                                "value": "@item().column_delimiter",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             }
                           }
@@ -217,7 +223,7 @@
                         },
                         "policy": {
                           "timeout": "0.12:00:00",
-                          "retry": 0,
+                          "retry": 3,
                           "retryIntervalInSeconds": 30,
                           "secureInput": false,
                           "secureOutput": false
@@ -282,7 +288,10 @@
                               "typeProperties": {
                                 "location": {
                                   "type": "LakehouseLocation",
-                                  "folderPath": "@concat('Raw_Landing/', item().source_system)",
+                                  "folderPath": {
+                                    "value": "@concat('Raw_Landing/', item().source_system)",
+                                    "type": "Expression"
+                                  },
                                   "fileName": {
                                     "value": "@item().file_name",
                                     "type": "Expression"
@@ -364,11 +373,17 @@
                               "type": "string"
                             },
                             "load_type": {
-                              "value": "@item().load_type",
+                              "value": {
+                                "value": "@item().load_type",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             },
                             "column_delimiter": {
-                              "value": "@item().column_delimiter",
+                              "value": {
+                                "value": "@item().column_delimiter",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             }
                           }
@@ -378,7 +393,7 @@
                         },
                         "policy": {
                           "timeout": "0.12:00:00",
-                          "retry": 0,
+                          "retry": 3,
                           "retryIntervalInSeconds": 30,
                           "secureInput": false,
                           "secureOutput": false
