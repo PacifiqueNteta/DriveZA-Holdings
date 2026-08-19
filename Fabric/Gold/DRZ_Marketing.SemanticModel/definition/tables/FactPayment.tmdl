@@ -1,0 +1,100 @@
+table FactPayment
+	lineageTag: 3e4f661a-aec3-4831-84e8-b055420c0fc1
+	sourceLineageTag: [Marketing].[FactPayment]
+
+	column PaymentKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: e6f15ec6-155a-48f2-afa6-7f7af272b917
+		sourceLineageTag: PaymentKey
+		summarizeBy: none
+		sourceColumn: PaymentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 678f6ac7-c06b-472b-adbd-2a544f2a41ca
+		sourceLineageTag: PaymentID
+		summarizeBy: none
+		sourceColumn: PaymentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column RentalKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: a79f5a17-8227-4641-a7f2-e35891bdcd4c
+		sourceLineageTag: RentalKey
+		summarizeBy: none
+		sourceColumn: RentalKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: f2c44b0b-c8f6-4ea5-b682-bba836fa0c97
+		sourceLineageTag: CustomerKey
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PaymentDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 52769408-23cd-4a6a-8ba0-8947898d8c74
+		sourceLineageTag: PaymentDateKey
+		summarizeBy: none
+		sourceColumn: PaymentDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column AmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: c5b60111-b888-4a77-b602-ed510e53d0fc
+		sourceLineageTag: AmountZAR
+		summarizeBy: none
+		sourceColumn: AmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column PaymentMethod
+		dataType: string
+		sourceProviderType: varchar(30)
+		lineageTag: 0fd563da-d626-4bc9-a8db-7f943bc47372
+		sourceLineageTag: PaymentMethod
+		summarizeBy: none
+		sourceColumn: PaymentMethod
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 1cb4ad7a-44df-4d2c-8b41-59dd39e3a7ca
+		sourceLineageTag: Status
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactPayment = entity
+		mode: directLake
+		source
+			entityName: FactPayment
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

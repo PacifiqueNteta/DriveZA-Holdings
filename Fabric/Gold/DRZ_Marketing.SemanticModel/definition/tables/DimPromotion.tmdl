@@ -1,0 +1,110 @@
+table DimPromotion
+	lineageTag: 312921b1-e996-4605-b7a6-be2089dd0724
+	sourceLineageTag: [Marketing].[DimPromotion]
+
+	column PromotionKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: c219aa13-9b2a-46cf-9165-50d15b40b6d4
+		sourceLineageTag: PromotionKey
+		summarizeBy: none
+		sourceColumn: PromotionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 65e2e12a-192f-47f9-b9f0-757568fd5508
+		sourceLineageTag: PromotionID
+		summarizeBy: none
+		sourceColumn: PromotionID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromoCode
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 392ff95e-46ed-4e58-a5cf-37258eba3d84
+		sourceLineageTag: PromoCode
+		summarizeBy: none
+		sourceColumn: PromoCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromoName
+		dataType: string
+		sourceProviderType: varchar(100)
+		lineageTag: 65a59afc-0c77-4947-80de-f10110bd45f4
+		sourceLineageTag: PromoName
+		summarizeBy: none
+		sourceColumn: PromoName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountValue
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(5, 2)
+		lineageTag: 6c21e829-7566-4d26-80d8-8152ad689771
+		sourceLineageTag: DiscountValue
+		summarizeBy: none
+		sourceColumn: DiscountValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column DiscountType
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 27c97921-b670-41ec-9cc8-a8b56fba08cb
+		sourceLineageTag: DiscountType
+		summarizeBy: none
+		sourceColumn: DiscountType
+
+		annotation SummarizationSetBy = Automatic
+
+	column StartDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 75b73df2-1177-46f3-b061-3b777e1d60d5
+		sourceLineageTag: StartDate
+		summarizeBy: none
+		sourceColumn: StartDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column EndDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: d117cdc9-8c7f-4ad9-aae1-64cd3159cc2f
+		sourceLineageTag: EndDate
+		summarizeBy: none
+		sourceColumn: EndDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsActive
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 35deea04-9ac5-43c4-87c0-b34defc9c6a2
+		sourceLineageTag: IsActive
+		summarizeBy: none
+		sourceColumn: IsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimPromotion = entity
+		mode: directLake
+		source
+			entityName: DimPromotion
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

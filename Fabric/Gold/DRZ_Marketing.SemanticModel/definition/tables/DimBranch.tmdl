@@ -1,0 +1,96 @@
+table DimBranch
+	lineageTag: 2598b3a8-54fb-428a-8967-e5ee511c8297
+	sourceLineageTag: [Marketing].[DimBranch]
+
+	column BranchKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: d4d42807-5cd2-4bcd-bdd9-773191a22bd4
+		sourceLineageTag: BranchKey
+		summarizeBy: none
+		sourceColumn: BranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 08a0fa51-4b56-4d9e-9993-fed4728c34db
+		sourceLineageTag: BranchID
+		summarizeBy: none
+		sourceColumn: BranchID
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchName
+		dataType: string
+		sourceProviderType: varchar(100)
+		lineageTag: f619ff6f-6130-48b0-8958-ff277a6dd704
+		sourceLineageTag: BranchName
+		summarizeBy: none
+		sourceColumn: BranchName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Province
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: 2e5baae8-3f7b-47be-952c-d199e01adb03
+		sourceLineageTag: Province
+		summarizeBy: none
+		sourceColumn: Province
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: 47044436-198f-4e68-8e49-f9ac0a322ad3
+		sourceLineageTag: City
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column ManagerName
+		dataType: string
+		sourceProviderType: varchar(100)
+		lineageTag: eadd6150-7703-48df-96b6-99ef6712db56
+		sourceLineageTag: ManagerName
+		summarizeBy: none
+		sourceColumn: ManagerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column FleetCapacity
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: a71cc826-293f-4908-8737-aa15860c7d3d
+		sourceLineageTag: FleetCapacity
+		summarizeBy: sum
+		sourceColumn: FleetCapacity
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsActive
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 709c7ada-486b-451d-83a9-e34b5879b641
+		sourceLineageTag: IsActive
+		summarizeBy: none
+		sourceColumn: IsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimBranch = entity
+		mode: directLake
+		source
+			entityName: DimBranch
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

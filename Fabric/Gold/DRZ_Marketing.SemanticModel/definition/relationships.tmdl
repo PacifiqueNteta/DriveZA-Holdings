@@ -1,0 +1,55 @@
+relationship 10597c02-d458-d964-5ed9-61186c8ad764
+	fromColumn: FactRental.CustomerKey
+	toColumn: DimCustomer.CustomerKey
+
+relationship 30b25dd7-656a-80b1-c9ca-3d313d31055e
+	fromColumn: FactRental.VehicleKey
+	toColumn: DimVehicle.VehicleKey
+
+relationship ce0228db-e835-2bd3-0f5c-3970d105547c
+	fromColumn: FactMaintenance.VehicleKey
+	toColumn: DimVehicle.VehicleKey
+
+relationship a8caf7e7-bb1d-f100-31c8-856f8fb602c9
+	fromColumn: DimVehicle.VehicleKey
+	toColumn: FactIncident.VehicleKey
+
+relationship 36b24fa7-b6f7-a9e2-b9fe-dfa2a35318bb
+	fromColumn: FactRental.EmployeeKey
+	toColumn: DimEmployees.EmployeeKey
+
+relationship 0d02ee54-e603-928e-f62c-38b61d3ffc0d
+	fromColumn: FactRental.PromotionKey
+	toColumn: DimPromotion.PromotionKey
+
+relationship c093c1c9-dd99-d74d-585f-fc74d875b878
+	fromColumn: FactRental.PickupBranchKey
+	toColumn: DimBranch.BranchKey
+
+relationship 10781eef-3337-b195-9c80-6ab4322da3e8
+	isActive: false
+	fromColumn: FactRental.DropoffBranchKey
+	toColumn: DimBranch.BranchKey
+
+relationship 35733462-331e-206d-a960-0df97894395a
+	fromColumn: FactMaintenance.BranchKey
+	toColumn: DimBranch.BranchKey
+
+relationship 0620bde0-9514-3142-933d-5e6066123287
+	fromColumn: DimDate.DateKey
+	toColumn: FactRental.PickupDateKey
+
+relationship b63ace14-81be-b453-06ea-2f26e54bf5ab
+	isActive: false
+	fromColumn: DimDate.DateKey
+	toColumn: FactRental.BookingDateKey
+
+relationship 6e32970d-1049-d6f0-21e0-0d7b43971ed5
+	isActive: false
+	fromColumn: DimDate.DateKey
+	toColumn: FactRental.DropoffDateKey
+
+relationship 10396f93-3e81-9398-4899-7734cc1ddec1
+	fromColumn: DimDate.DateKey
+	toColumn: FactPayment.PaymentDateKey
+

@@ -1,0 +1,128 @@
+table DimCustomer
+	lineageTag: 6869040f-2172-4a85-8fac-7fa91eb422d0
+	sourceLineageTag: [Marketing].[DimCustomer]
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 9c3e9905-2fd9-4f67-8169-2ed5fb9a4478
+		sourceLineageTag: CustomerKey
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 81aceda7-728c-404e-aaca-da36175c96e1
+		sourceLineageTag: CustomerID
+		summarizeBy: none
+		sourceColumn: CustomerID
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstName
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: 7269c424-689a-477c-9807-179d9b1a7999
+		sourceLineageTag: FirstName
+		summarizeBy: none
+		sourceColumn: FirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastName
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: 0e0178c8-903f-4480-8174-8538f76f607c
+		sourceLineageTag: LastName
+		summarizeBy: none
+		sourceColumn: LastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: e3da0268-682c-49d3-b231-ded39711370c
+		sourceLineageTag: City
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column Province
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: 2235b8f8-3300-404d-8b62-d70825d3f464
+		sourceLineageTag: Province
+		summarizeBy: none
+		sourceColumn: Province
+
+		annotation SummarizationSetBy = Automatic
+
+	column LoyaltyTier
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 9be1f853-49a2-4957-bbed-3a05d57e0784
+		sourceLineageTag: LoyaltyTier
+		summarizeBy: none
+		sourceColumn: LoyaltyTier
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCorporateAccount
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 700e5995-e839-4578-baaf-d788b57b8b23
+		sourceLineageTag: IsCorporateAccount
+		summarizeBy: none
+		sourceColumn: IsCorporateAccount
+
+		annotation SummarizationSetBy = Automatic
+
+	column EffectiveDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 5a0fd387-dd78-4674-8ac0-1b2014271183
+		sourceLineageTag: EffectiveDate
+		summarizeBy: none
+		sourceColumn: EffectiveDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExpiryDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: da3a83ff-7e4a-4235-8d84-a66aa6fcfd74
+		sourceLineageTag: ExpiryDate
+		summarizeBy: none
+		sourceColumn: ExpiryDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCurrent
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: e46fcd15-9354-4a18-983d-d863bb453633
+		sourceLineageTag: IsCurrent
+		summarizeBy: none
+		sourceColumn: IsCurrent
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimCustomer = entity
+		mode: directLake
+		source
+			entityName: DimCustomer
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

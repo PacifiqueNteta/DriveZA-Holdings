@@ -1,0 +1,245 @@
+table FactRental
+	lineageTag: 519116a4-b190-49bd-81a0-5d6ff6cfb160
+	sourceLineageTag: [Marketing].[FactRental]
+
+	column RentalKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 732bbc60-b712-4d94-b7ae-aa4dbe79f128
+		sourceLineageTag: RentalKey
+		summarizeBy: count
+		sourceColumn: RentalKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RentalID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 466d1bc3-6c90-4d63-9ad4-c495aaa65fe3
+		sourceLineageTag: RentalID
+		summarizeBy: none
+		sourceColumn: RentalID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: e9f1678a-d7b8-4ed7-98f9-1695299607b3
+		sourceLineageTag: CustomerKey
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column VehicleKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: b8fba663-f299-4622-9fa6-2eaeaacef93c
+		sourceLineageTag: VehicleKey
+		summarizeBy: none
+		sourceColumn: VehicleKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PickupBranchKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 02920a81-d7d3-45e8-9663-ced57cd59268
+		sourceLineageTag: PickupBranchKey
+		summarizeBy: none
+		sourceColumn: PickupBranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DropoffBranchKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 4b5e39b0-d844-4795-af6a-4aca82e22113
+		sourceLineageTag: DropoffBranchKey
+		summarizeBy: count
+		sourceColumn: DropoffBranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmployeeKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 0d4d2051-e91e-4df0-ab0e-9838cbe367de
+		sourceLineageTag: EmployeeKey
+		summarizeBy: none
+		sourceColumn: EmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PromotionKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 7f00ca64-0601-4fa0-9115-d2bf956ed3dc
+		sourceLineageTag: PromotionKey
+		summarizeBy: none
+		sourceColumn: PromotionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BookingDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 0b4442b1-e18e-49b3-9eaf-745e2f54124b
+		sourceLineageTag: BookingDateKey
+		summarizeBy: count
+		sourceColumn: BookingDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PickupDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 4069c918-4a8e-49ad-836a-f03194283cb7
+		sourceLineageTag: PickupDateKey
+		summarizeBy: none
+		sourceColumn: PickupDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DropoffDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 3f8cd2d4-e280-452b-8230-61a1eaa1380d
+		sourceLineageTag: DropoffDateKey
+		summarizeBy: count
+		sourceColumn: DropoffDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RentalDays
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d5a0eab6-286a-4843-9dca-4ccbe7d34bca
+		sourceLineageTag: RentalDays
+		summarizeBy: sum
+		sourceColumn: RentalDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column DailyRateZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: acc2858a-bc80-42e8-9bd2-a7306e2a1115
+		sourceLineageTag: DailyRateZAR
+		summarizeBy: sum
+		sourceColumn: DailyRateZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column BaseRentalAmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 03d0b772-f908-44e1-a7f5-3c7db9608e37
+		sourceLineageTag: BaseRentalAmountZAR
+		summarizeBy: sum
+		sourceColumn: BaseRentalAmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column InsuranceAmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 2c3e60ee-53c2-4d48-b33c-406bb15e0ad8
+		sourceLineageTag: InsuranceAmountZAR
+		summarizeBy: sum
+		sourceColumn: InsuranceAmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column ExtrasAmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: b343aef0-37e9-4ffd-a267-6a2c3b0a77d2
+		sourceLineageTag: ExtrasAmountZAR
+		summarizeBy: sum
+		sourceColumn: ExtrasAmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column DiscountAmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 7c1be09b-0cc8-4ec9-a2e2-1bba9ab38c2f
+		sourceLineageTag: DiscountAmountZAR
+		summarizeBy: sum
+		sourceColumn: DiscountAmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column TotalAmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 6d413307-a168-425e-9a5b-26d2447f1f99
+		sourceLineageTag: TotalAmountZAR
+		summarizeBy: sum
+		sourceColumn: TotalAmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column DepositAmountZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: ec6620e7-91ad-4e91-819c-44c1c02701c3
+		sourceLineageTag: DepositAmountZAR
+		summarizeBy: sum
+		sourceColumn: DepositAmountZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column RentalStatus
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 0e760444-76a3-430b-8ee5-c58edfe19bca
+		sourceLineageTag: RentalStatus
+		summarizeBy: none
+		sourceColumn: RentalStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactRental = entity
+		mode: directLake
+		source
+			entityName: FactRental
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

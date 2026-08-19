@@ -1,0 +1,141 @@
+table DimVehicle
+	lineageTag: 393ae8ed-f338-4f06-9816-e83f10ac26a7
+	sourceLineageTag: [Marketing].[DimVehicle]
+
+	column VehicleKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: c132b9fa-51f4-4dfa-b324-be50ce7872b8
+		sourceLineageTag: VehicleKey
+		summarizeBy: none
+		sourceColumn: VehicleKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column VehicleID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 20deaf5b-b920-45e2-bb11-9d92c4550095
+		sourceLineageTag: VehicleID
+		summarizeBy: none
+		sourceColumn: VehicleID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Make
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: b51ea034-f1c9-4233-b7fd-3e7e7f1f318e
+		sourceLineageTag: Make
+		summarizeBy: none
+		sourceColumn: Make
+
+		annotation SummarizationSetBy = Automatic
+
+	column Model
+		dataType: string
+		sourceProviderType: varchar(50)
+		lineageTag: dbb1cbb2-4e15-45ef-b6f6-03d959ec6268
+		sourceLineageTag: Model
+		summarizeBy: none
+		sourceColumn: Model
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		sourceProviderType: varchar(30)
+		lineageTag: 84f99e75-aace-4c4d-b39a-7b45a1204e09
+		sourceLineageTag: Category
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: ac9fe963-e382-4adf-9489-a401e5e49d19
+		sourceLineageTag: Status
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: cf4d407c-5035-48e1-bf72-a60e60b89fb5
+		sourceLineageTag: BranchID
+		summarizeBy: none
+		sourceColumn: BranchID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentOdometerKM
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e4afc846-b7f9-460a-b0d1-5e9eb572dfb6
+		sourceLineageTag: CurrentOdometerKM
+		summarizeBy: sum
+		sourceColumn: CurrentOdometerKM
+
+		annotation SummarizationSetBy = Automatic
+
+	column DailyRateZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 1fafb412-82bd-4f8e-b6d7-f28dab040374
+		sourceLineageTag: DailyRateZAR
+		summarizeBy: sum
+		sourceColumn: DailyRateZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column EffectiveDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 13bcd391-d679-479d-8f2f-0316ecd0c2ef
+		sourceLineageTag: EffectiveDate
+		summarizeBy: none
+		sourceColumn: EffectiveDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExpiryDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 686c46ad-56d0-49ff-bbe6-1efa7ee06797
+		sourceLineageTag: ExpiryDate
+		summarizeBy: none
+		sourceColumn: ExpiryDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCurrent
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: f00419d7-afd8-47bf-8ab6-604308e88f49
+		sourceLineageTag: IsCurrent
+		summarizeBy: none
+		sourceColumn: IsCurrent
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimVehicle = entity
+		mode: directLake
+		source
+			entityName: DimVehicle
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

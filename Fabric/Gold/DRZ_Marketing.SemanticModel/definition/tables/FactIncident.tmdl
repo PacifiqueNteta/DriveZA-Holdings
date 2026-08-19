@@ -1,0 +1,140 @@
+table FactIncident
+	lineageTag: e34a0b90-3f05-4755-98bb-49a4cb73630f
+	sourceLineageTag: [Marketing].[FactIncident]
+
+	column IncidentKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: c7f3b082-a3f2-4e1f-aa04-d61c7b6896ce
+		sourceLineageTag: IncidentKey
+		summarizeBy: none
+		sourceColumn: IncidentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: 65d37835-134e-427a-8da5-40f764b4591d
+		sourceLineageTag: IncidentID
+		summarizeBy: none
+		sourceColumn: IncidentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column RentalKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: a66af21f-fdf3-45cb-a3c1-86170a66da21
+		sourceLineageTag: RentalKey
+		summarizeBy: none
+		sourceColumn: RentalKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column VehicleKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 2b6da66d-d347-49aa-8439-0ac443aa3048
+		sourceLineageTag: VehicleKey
+		summarizeBy: none
+		sourceColumn: VehicleKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: b6bd4310-e94b-4f03-9d14-77afe5a9323d
+		sourceLineageTag: CustomerKey
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 936e3c41-bfd4-49e9-afa0-d6e67bfc3e5f
+		sourceLineageTag: IncidentDateKey
+		summarizeBy: none
+		sourceColumn: IncidentDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedDamageZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 5b7bd6ef-6cb7-40f7-9cfd-726dee6c29af
+		sourceLineageTag: EstimatedDamageZAR
+		summarizeBy: none
+		sourceColumn: EstimatedDamageZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column ActualRepairCostZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 6c0709a8-68a7-4349-b9bd-f26f25d44da3
+		sourceLineageTag: ActualRepairCostZAR
+		summarizeBy: none
+		sourceColumn: ActualRepairCostZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column InsurancePayoutZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: d72b49dd-33ab-494e-a9d2-fc5813c9420c
+		sourceLineageTag: InsurancePayoutZAR
+		summarizeBy: none
+		sourceColumn: InsurancePayoutZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column ExcessChargedZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 96b225f0-8771-4a56-9855-97a92b521bc9
+		sourceLineageTag: ExcessChargedZAR
+		summarizeBy: none
+		sourceColumn: ExcessChargedZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column Status
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 26e3d46e-a3ac-45df-8ee1-3156a1426bdc
+		sourceLineageTag: Status
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactIncident = entity
+		mode: directLake
+		source
+			entityName: FactIncident
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

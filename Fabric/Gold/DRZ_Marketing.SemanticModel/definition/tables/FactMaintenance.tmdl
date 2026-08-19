@@ -1,0 +1,116 @@
+table FactMaintenance
+	lineageTag: 7ce5a3a2-b67a-4e92-8e43-f3397ab25f9f
+	sourceLineageTag: [Marketing].[FactMaintenance]
+
+	column MaintenanceKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 3c5ce39c-eaf2-4085-b0e3-89f7e2a4eb93
+		sourceLineageTag: MaintenanceKey
+		summarizeBy: count
+		sourceColumn: MaintenanceKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaintenanceID
+		dataType: string
+		sourceProviderType: varchar(10)
+		lineageTag: dfee324e-c3f0-46b5-b1d5-a14202f56760
+		sourceLineageTag: MaintenanceID
+		summarizeBy: none
+		sourceColumn: MaintenanceID
+
+		annotation SummarizationSetBy = Automatic
+
+	column VehicleKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: c3d2a7c9-aca3-40f2-9c6c-2ed01275f9f8
+		sourceLineageTag: VehicleKey
+		summarizeBy: none
+		sourceColumn: VehicleKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BranchKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: cf7f0631-2a30-4003-b4c3-d23fa862a5e1
+		sourceLineageTag: BranchKey
+		summarizeBy: none
+		sourceColumn: BranchKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ScheduledDateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 5e27933f-b12c-466f-ba64-3bce8a2d8b6b
+		sourceLineageTag: ScheduledDateKey
+		summarizeBy: count
+		sourceColumn: ScheduledDateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CostZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 8e407a0c-89fb-429c-8907-14f021f2b7cf
+		sourceLineageTag: CostZAR
+		summarizeBy: sum
+		sourceColumn: CostZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column PartsCostZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: bc33945c-1c11-4417-b118-f8d646c74693
+		sourceLineageTag: PartsCostZAR
+		summarizeBy: sum
+		sourceColumn: PartsCostZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column LabourCostZAR
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		sourceProviderType: decimal(10, 2)
+		lineageTag: 584cb691-b633-4f41-9cbd-71bcf127fa7d
+		sourceLineageTag: LabourCostZAR
+		summarizeBy: sum
+		sourceColumn: LabourCostZAR
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column Status
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 96b98360-a1ec-476f-82f5-cadd9a16bd96
+		sourceLineageTag: Status
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactMaintenance = entity
+		mode: directLake
+		source
+			entityName: FactMaintenance
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

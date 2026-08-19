@@ -1,0 +1,154 @@
+table DimDate
+	lineageTag: 98e4aeaa-1d11-4833-aa75-32b3cbac9610
+	sourceLineageTag: [Marketing].[DimDate]
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 169a1766-7e74-4a45-9f80-f34491b4f3e6
+		sourceLineageTag: DateKey
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullDate
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 9d8eaa5b-dbe7-4bf5-bc9f-5d5f76c34aa3
+		sourceLineageTag: FullDate
+		summarizeBy: none
+		sourceColumn: FullDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeek
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: 7cbf90cc-a533-46b6-9477-b22f0c363bb1
+		sourceLineageTag: DayOfWeek
+		summarizeBy: none
+		sourceColumn: DayOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfMonth
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 2983d693-f9ce-4e8d-85df-1b010efc8b9b
+		sourceLineageTag: DayOfMonth
+		summarizeBy: sum
+		sourceColumn: DayOfMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNumber
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: a2d7b385-bf20-4670-a397-931bcf24f113
+		sourceLineageTag: MonthNumber
+		summarizeBy: sum
+		sourceColumn: MonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		sourceProviderType: varchar(20)
+		lineageTag: afb7349f-22e9-4c61-b6a9-46b9ff02e5ac
+		sourceLineageTag: MonthName
+		summarizeBy: none
+		sourceColumn: MonthName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 247b971c-feac-4978-a5e0-7d782d0ca1b7
+		sourceLineageTag: Quarter
+		summarizeBy: sum
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: b366c753-0f2c-4547-8d62-c2873c06a69b
+		sourceLineageTag: Year
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalMonth
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 11c71db8-34aa-4088-a2ac-7c6610c380e7
+		sourceLineageTag: FiscalMonth
+		summarizeBy: sum
+		sourceColumn: FiscalMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarter
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 5888d00b-5d8f-4fde-bfcf-533b19b3c5fc
+		sourceLineageTag: FiscalQuarter
+		summarizeBy: sum
+		sourceColumn: FiscalQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 06a7825b-6af2-4c9a-98c4-ec41d318b090
+		sourceLineageTag: FiscalYear
+		summarizeBy: sum
+		sourceColumn: FiscalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWeekend
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: da08e67f-85aa-4139-94bf-36494816759b
+		sourceLineageTag: IsWeekend
+		summarizeBy: sum
+		sourceColumn: IsWeekend
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsSAPublicHoliday
+		dataType: int64
+		formatString: 0
+		sourceProviderType: smallint
+		lineageTag: 19b75a8b-fbf0-4c26-a40c-d7e6eea15c0e
+		sourceLineageTag: IsSAPublicHoliday
+		summarizeBy: sum
+		sourceColumn: IsSAPublicHoliday
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimDate = entity
+		mode: directLake
+		source
+			entityName: DimDate
+			schemaName: Marketing
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

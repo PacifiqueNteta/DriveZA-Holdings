@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "PL_DRZ_MRKT_Master",
+    "description": "Master Pipeline Orchestrating full data transformation from ingestion to silver transformation to business ready data"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "9028b662-8afc-872d-4966-2e4f47b6d55f"
+  }
+}

@@ -7,7 +7,10 @@
           "storedProcedureName": "[Marketing].[uspLoadDimBranch]",
           "storedProcedureParameters": {
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             },
             "pipeline_name": {
@@ -30,7 +33,7 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 0,
+          "retry": 3,
           "retryIntervalInSeconds": 30,
           "secureInput": false,
           "secureOutput": false
@@ -44,7 +47,10 @@
           "storedProcedureName": "[Marketing].[uspLoadDimPromotion]",
           "storedProcedureParameters": {
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             },
             "pipeline_name": {
@@ -67,13 +73,20 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 0,
+          "retry": 3,
           "retryIntervalInSeconds": 30,
           "secureInput": false,
           "secureOutput": false
         },
         "name": "SP_Load_DimPromotion",
-        "dependsOn": []
+        "dependsOn": [
+          {
+            "activity": "SP_Load_DimVehicle",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       },
       {
         "type": "SqlServerStoredProcedure",
@@ -81,7 +94,10 @@
           "storedProcedureName": "[Marketing].[uspLoadDimVehicle]",
           "storedProcedureParameters": {
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             },
             "pipeline_name": {
@@ -104,13 +120,20 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 0,
+          "retry": 3,
           "retryIntervalInSeconds": 30,
           "secureInput": false,
           "secureOutput": false
         },
         "name": "SP_Load_DimVehicle",
-        "dependsOn": []
+        "dependsOn": [
+          {
+            "activity": "SP_Load_DimBranch",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       },
       {
         "type": "SqlServerStoredProcedure",
@@ -122,7 +145,10 @@
               "type": "String"
             },
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             }
           }
@@ -141,13 +167,20 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 0,
+          "retry": 3,
           "retryIntervalInSeconds": 30,
           "secureInput": false,
           "secureOutput": false
         },
         "name": "SP_Load_DimEmployees",
-        "dependsOn": []
+        "dependsOn": [
+          {
+            "activity": "SP_Load_DimPromotion",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       },
       {
         "type": "SqlServerStoredProcedure",
@@ -159,7 +192,10 @@
               "type": "String"
             },
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             }
           }
@@ -186,30 +222,6 @@
         "name": "SP_Load_FactRental",
         "dependsOn": [
           {
-            "activity": "SP_Load_DimBranch",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          },
-          {
-            "activity": "SP_Load_DimPromotion",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          },
-          {
-            "activity": "SP_Load_DimVehicle",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          },
-          {
-            "activity": "SP_Load_DimEmployees",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          },
-          {
             "activity": "SP_Load_DimCustomer",
             "dependencyConditions": [
               "Succeeded"
@@ -227,7 +239,10 @@
               "type": "String"
             },
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             }
           }
@@ -271,7 +286,10 @@
               "type": "String"
             },
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             }
           }
@@ -298,7 +316,7 @@
         "name": "SP_Load_FactIncident",
         "dependsOn": [
           {
-            "activity": "SP_Load_FactRental",
+            "activity": "SP_Load_FactPayment",
             "dependencyConditions": [
               "Succeeded"
             ]
@@ -315,7 +333,10 @@
               "type": "String"
             },
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             }
           }
@@ -346,12 +367,6 @@
             "dependencyConditions": [
               "Succeeded"
             ]
-          },
-          {
-            "activity": "SP_Load_DimBranch",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
           }
         ]
       },
@@ -365,7 +380,10 @@
               "type": "String"
             },
             "pipeline_run_id": {
-              "value": "@pipeline().RunId",
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
               "type": "String"
             }
           }
@@ -384,13 +402,20 @@
         },
         "policy": {
           "timeout": "0.12:00:00",
-          "retry": 0,
+          "retry": 3,
           "retryIntervalInSeconds": 30,
           "secureInput": false,
           "secureOutput": false
         },
         "name": "SP_Load_DimCustomer",
-        "dependsOn": []
+        "dependsOn": [
+          {
+            "activity": "SP_Load_DimEmployees",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       }
     ]
   }

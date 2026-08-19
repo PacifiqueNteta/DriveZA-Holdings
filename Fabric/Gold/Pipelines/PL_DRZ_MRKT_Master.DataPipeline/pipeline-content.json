@@ -1,0 +1,176 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "InvokePipeline",
+        "typeProperties": {
+          "parameters": {},
+          "waitOnCompletion": true,
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "pipelineId": "13506c39-455e-b3ca-4670-6c6c6fef9fdb",
+          "operationType": "InvokeFabricPipeline"
+        },
+        "externalReferences": {
+          "connection": "a890a5d0-6863-41d7-8153-2ebfa5c5fc2b"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "PL_Bronze_Admin",
+        "dependsOn": []
+      },
+      {
+        "type": "InvokePipeline",
+        "typeProperties": {
+          "parameters": {},
+          "waitOnCompletion": true,
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "pipelineId": "d0a94363-b60e-b811-42bd-257521e3d1c3",
+          "operationType": "InvokeFabricPipeline"
+        },
+        "externalReferences": {
+          "connection": "a890a5d0-6863-41d7-8153-2ebfa5c5fc2b"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "PL_Bronze_Crm",
+        "dependsOn": []
+      },
+      {
+        "type": "InvokePipeline",
+        "typeProperties": {
+          "parameters": {},
+          "waitOnCompletion": true,
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "pipelineId": "c8a6b3db-dbfb-a17e-4395-f3b90539ec9e",
+          "operationType": "InvokeFabricPipeline"
+        },
+        "externalReferences": {
+          "connection": "a890a5d0-6863-41d7-8153-2ebfa5c5fc2b"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "PL_Silver_Transform",
+        "dependsOn": [
+          {
+            "activity": "PL_Bronze_Admin",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "PL_Bronze_Crm",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "InvokePipeline",
+        "typeProperties": {
+          "parameters": {},
+          "waitOnCompletion": true,
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "pipelineId": "6291b797-2fbe-8a85-4b19-eaa5c7d575d6",
+          "operationType": "InvokeFabricPipeline"
+        },
+        "externalReferences": {
+          "connection": "a890a5d0-6863-41d7-8153-2ebfa5c5fc2b"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "PL_Gold_Transform",
+        "dependsOn": [
+          {
+            "activity": "PL_Silver_Transform",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "PBISemanticModelRefresh",
+        "typeProperties": {
+          "method": "POST",
+          "groupId": "a93dcff1-e562-4cf4-9954-8e1176cfc71c",
+          "datasetId": "14589ec3-764d-4de0-85e5-c088069fd33e",
+          "commitMode": "Transactional",
+          "objects": [
+            {
+              "table": "FactMaintenance"
+            },
+            {
+              "table": "FactIncident"
+            },
+            {
+              "table": "DimDate"
+            },
+            {
+              "table": "DimBranch"
+            },
+            {
+              "table": "DimPromotion"
+            },
+            {
+              "table": "DimCustomer"
+            },
+            {
+              "table": "DimVehicle"
+            },
+            {
+              "table": "DimEmployees"
+            },
+            {
+              "table": "FactRental"
+            },
+            {
+              "table": "FactPayment"
+            }
+          ],
+          "waitOnCompletion": true,
+          "operationType": "SemanticModelRefresh"
+        },
+        "externalReferences": {
+          "connection": "b401d0c5-634b-45aa-93a5-7533a916d46d"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Semantic model refresh",
+        "dependsOn": [
+          {
+            "activity": "PL_Gold_Transform",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
