@@ -422,3 +422,16 @@ GROUP BY
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC --ALTER TABLE crm.rentals
+# MAGIC --ADD COLUMN late_return_fee_zar DECIMAL(18,2);
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
