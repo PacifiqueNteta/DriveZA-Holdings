@@ -55,14 +55,53 @@
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 from delta.tables import DeltaTable
+from pyspark.sql import Row
 
 import uuid
 import re
 import json
 import logging
 
-from datetime import datetime
+from datetime import datetime, UTC
 from functools import reduce
+
+from pyspark.sql.types import (
+StructType,
+StructField,
+StringType,
+LongType,
+TimestampType
+)
+
+run_log_schema = StructType([
+    StructField("pipeline_run_id", StringType(), True),
+    StructField("pipeline_name", StringType(), True),
+    StructField("source_type", StringType(), True),
+    StructField("source_name", StringType(), True),
+    StructField("schema_name", StringType(), True),
+    StructField("table_name", StringType(), True),
+    StructField("run_status", StringType(), True),
+    StructField("rows_read", LongType(), True),
+    StructField("rows_written", LongType(), True),
+    StructField("inserted_rows", LongType(), True),
+    StructField("updated_rows", LongType(), True),
+    StructField("error_message", StringType(), True),
+    StructField("run_start", TimestampType(), True),
+    StructField("run_end", TimestampType(), True),
+    StructField("duration_seconds", LongType(), True)
+])
+
+control_schema = StructType([
+    StructField("source_type", StringType(), True),
+    StructField("source_name", StringType(), True),
+    StructField("schema_name", StringType(), True),
+    StructField("table_name", StringType(), True),
+    StructField("run_status", StringType(), True),
+    StructField("rows_read", LongType(), True),
+    StructField("rows_written", LongType(), True),
+    StructField("watermark_value", TimestampType(), True)
+])
+
 
 
 # Structured (JSON) logging, so log lines are queryable instead of free-text print() output.
@@ -71,7 +110,7 @@ class JsonFormatter(logging.Formatter):
     def format(self, record):
 
         payload = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "message": record.getMessage()
         }
@@ -239,7 +278,7 @@ def publish_failure_alert(
                 "schemaName": schema_name,
                 "tableName": table_name,
                 "errorMessage": error_message or "",
-                "eventTime": datetime.utcnow().isoformat()
+                "eventTime": datetime.now(UTC).isoformat()
             }
         )
 
@@ -769,7 +808,7 @@ for (
         }}
     )
 
-    table_start = datetime.now()
+    table_start = datetime.now(UTC)
 
     last_watermark = control_lookup.get(
         (schema_name.lower(), table_name.lower())
@@ -894,6 +933,15 @@ for (
             )
 
             logger.info(
+                "Watermark returned",
+                extra={"extra_fields": {
+                    "schema_name": schema_name,
+                    "table_name": table_name,
+                    "new_watermark": str(result.get("new_watermark"))
+                }}
+            )
+
+            logger.info(
                 "Rows read",
                 extra={"extra_fields": {
                     "schema_name": schema_name,
@@ -941,7 +989,7 @@ for (
         updated_rows = 0
         new_watermark = None
 
-    table_end = datetime.now()
+    table_end = datetime.now(UTC)
 
     duration_seconds = int(
         (table_end - table_start).total_seconds()
@@ -950,119 +998,94 @@ for (
     # Control table + run log
     try:
 
-        spark.sql("""
-        MERGE INTO {ctrl} t
-        USING
-        (
-            SELECT
-                :source_type AS source_type,
-                :source_name AS source_name,
-                :schema_name AS schema_name,
-                :table_name AS table_name,
-                :run_status AS run_status,
-                :rows_read AS rows_read,
-                :rows_written AS rows_written,
-                :watermark_value AS watermark_value
-        ) s
-        ON
-        t.schema_name = s.schema_name
-        AND t.table_name = s.table_name
+        control_df = spark.createDataFrame(
+            [(
+                 str(source_type),
+                 str(source_name),
+                 str(schema_name),
+                 str(table_name),
+                 str(run_status),
+                 int(rows_read),
+                 int(rows_written),
+                 new_watermark
+            )],
+            schema=control_schema
+         )
 
-        WHEN MATCHED THEN UPDATE SET
-
-            last_run_status = s.run_status,
-            last_run_end_time = current_timestamp(),
-            rows_read = CASE
-                WHEN s.run_status = 'Succeeded' THEN s.rows_read
-                ELSE t.rows_read
-            END,
-            rows_written = CASE
-                WHEN s.run_status = 'Succeeded' THEN s.rows_written
-                ELSE t.rows_written
-            END,
-            last_watermark_value = CASE
-                WHEN s.run_status = 'Succeeded' THEN s.watermark_value
-                ELSE t.last_watermark_value
-            END,
-            updated_at = current_timestamp()
-
-        WHEN NOT MATCHED THEN
-        INSERT
-        (
-            source_type,
-            source_name,
-            schema_name,
-            table_name,
-            last_run_status,
-            last_run_end_time,
-            rows_read,
-            rows_written,
-            last_watermark_value,
-            created_at,
-            updated_at
+        control_df.createOrReplaceTempView(
+            "vw_control_record"
         )
-        VALUES
-        (
-            s.source_type,
-            s.source_name,
-            s.schema_name,
-            s.table_name,
-            s.run_status,
-            current_timestamp(),
-            s.rows_read,
-            s.rows_written,
-            s.watermark_value,
-            current_timestamp(),
-            current_timestamp()
-        )
-        """.format(ctrl=CTRL_TABLE), args={
-            "source_type": source_type,
-            "source_name": source_name,
-            "schema_name": schema_name,
-            "table_name": table_name,
-            "run_status": run_status,
-            "rows_read": rows_read,
-            "rows_written": rows_written,
-            "watermark_value": new_watermark
-        })
 
-        spark.sql("""
-        INSERT INTO {run_log}
-        VALUES
-        (
-            :pipeline_run_id,
-            :pipeline_name,
-            :source_type,
-            :source_name,
-            :schema_name,
-            :table_name,
-            :run_status,
-            :rows_read,
-            :rows_written,
-            :inserted_rows,
-            :updated_rows,
-            :error_message,
-            :run_start,
-            :run_end,
-            :duration_seconds
+        spark.sql(f"""
+            MERGE INTO {CTRL_TABLE} t
+            USING vw_control_record s
+            ON t.schema_name = s.schema_name
+            AND t.table_name = s.table_name
+
+            WHEN MATCHED THEN
+            UPDATE SET
+                last_run_status = s.run_status,
+                last_run_end_time = current_timestamp(),
+                rows_read = s.rows_read,
+                rows_written = s.rows_written,
+                last_watermark_value = s.watermark_value,
+                updated_at = current_timestamp()
+
+            WHEN NOT MATCHED THEN
+            INSERT
+            (
+                source_type,
+                source_name,
+                schema_name,
+                table_name,
+                last_run_status,
+                last_run_end_time,
+                rows_read,
+                rows_written,
+                last_watermark_value,
+                created_at,
+                updated_at
+            )
+            VALUES
+            (
+                s.source_type,
+                s.source_name,
+                s.schema_name,
+                s.table_name,
+                s.run_status,
+                current_timestamp(),
+                s.rows_read,
+                s.rows_written,
+                s.watermark_value,
+                current_timestamp(),
+                current_timestamp()
+            )
+        """)
+
+        run_log_df = spark.createDataFrame(
+            [(
+                str(pipeline_run_id),
+                str(PIPELINE_NAME),
+                str(source_type),
+                str(source_name),
+                str(schema_name),
+                str(table_name),
+                str(run_status),
+                int(rows_read),
+                int(rows_written),
+                int(inserted_rows),
+                int(updated_rows),
+                "" if error_message is None else str(error_message),
+                table_start,
+                table_end,
+                int(duration_seconds)
+            )],
+            schema=run_log_schema
         )
-        """.format(run_log=RUN_LOG_TABLE), args={
-            "pipeline_run_id": pipeline_run_id,
-            "pipeline_name": PIPELINE_NAME,
-            "source_type": source_type,
-            "source_name": source_name,
-            "schema_name": schema_name,
-            "table_name": table_name,
-            "run_status": run_status,
-            "rows_read": rows_read,
-            "rows_written": rows_written,
-            "inserted_rows": inserted_rows,
-            "updated_rows": updated_rows,
-            "error_message": error_message,
-            "run_start": table_start,
-            "run_end": table_end,
-            "duration_seconds": duration_seconds
-        })
+
+        run_log_df.write \
+            .mode("append") \
+            .saveAsTable(RUN_LOG_TABLE)
 
     except Exception as log_error:
 
@@ -1074,8 +1097,6 @@ for (
                 "log_error": str(log_error)[:500]
             }}
         )
-
-    continue
 
 # METADATA ********************
 
