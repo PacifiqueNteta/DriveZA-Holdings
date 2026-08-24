@@ -1,5 +1,5 @@
 -- DimPromotion
-CREATE   PROCEDURE Marketing.uspLoadDimPromotion
+CREATE     PROCEDURE Marketing.uspLoadDimPromotion
     @pipeline_run_id VARCHAR(100),
     @pipeline_name VARCHAR(100)
 AS
@@ -37,8 +37,12 @@ BEGIN
             PromotionID,
             PromoCode,
             PromoName,
+            PromoDescription,
             DiscountValue,
             DiscountType,
+            ApplicableCategories,
+            TimesUsed,
+            UsageLimit,
             StartDate,
             EndDate,
             IsActive
@@ -47,8 +51,12 @@ BEGIN
             source.promotion_id,
             source.promo_code,
             source.promo_name,
+            source.description,
             source.discount_value,
             source.discount_type,
+            source.applicable_categories,
+            source.times_used,
+            source.usage_limit,
             source.start_date,
             source.end_date,
             source.is_active

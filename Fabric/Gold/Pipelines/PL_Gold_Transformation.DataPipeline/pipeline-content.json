@@ -416,6 +416,40 @@
             ]
           }
         ]
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "storedProcedureName": "[metadata].[usp_UpdatePipelineControl]"
+        },
+        "linkedService": {
+          "name": "WH_DRZ_GOLD",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "42fc8fbe-8efa-bb9d-4dde-a778918de202",
+              "endpoint": "mvh7qsaddscu3kubpkbqmhtc4y-6hht3klc4x2ezgkuryixnt6hdq.datawarehouse.fabric.microsoft.com",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "SP_UpdatePipelineControl",
+        "dependsOn": [
+          {
+            "activity": "SP_Load_FactIncident",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
       }
     ]
   }

@@ -1,4 +1,4 @@
-CREATE   PROCEDURE Marketing.uspLoadDimVehicle
+CREATE     PROCEDURE Marketing.uspLoadDimVehicle
     @pipeline_run_id VARCHAR(100),
     @pipeline_name VARCHAR(100)
 AS
@@ -40,9 +40,14 @@ BEGIN
             Model,
             Category,
             Status,
+            Color,
+            FuelType,
+            Transmission,
+            Year,
             BranchID,
             CurrentOdometerKM,
             DailyRateZAR,
+            PurchaseDate,
             EffectiveDate,
             ExpiryDate,
             IsCurrent
@@ -53,9 +58,14 @@ BEGIN
             source.model,
             source.category,
             source.status,
+            source.color,
+            source.fuel_type,
+            source.transmission,
+            source.year,
             source.branch_id,
             source.current_odometer_km,
             source.daily_rate_zar,
+            source.purchase_date,
             CAST(SYSUTCDATETIME() AS DATE),
             NULL,
             1
@@ -73,11 +83,16 @@ BEGIN
             source.model,
             source.category,
             source.status,
+            source.color,
+            source.fuel_type,
+            source.transmission,
+            source.year,
             source.branch_id,
             source.current_odometer_km,
             source.daily_rate_zar,
+            source.purchase_date,
             CAST(SYSUTCDATETIME() AS DATE),
-            NULL,
+            NULL, 
             1
         FROM LH_DRZ_SILVER.fleet.vehicles source
         INNER JOIN Marketing.DimVehicle expired_rec

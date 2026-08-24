@@ -1,3 +1,4 @@
+-- Failure Log Stored Procedure
 CREATE   PROCEDURE metadata.usp_LogFailure
 
     @pipeline_run_id VARCHAR(100),
@@ -15,13 +16,6 @@ BEGIN
     DECLARE @run_end DATETIME2(6);
 
     SET @run_end = SYSUTCDATETIME();
-
-    UPDATE metadata.pipeline_control
-    SET
-        last_run_status='Failed',
-        last_run_end=@run_end,
-        updated_date=@run_end
-    WHERE object_name=@object_name;
 
     INSERT INTO metadata.pipeline_run_log
     (
@@ -44,5 +38,6 @@ BEGIN
         @run_start,
         @run_end,
         DATEDIFF(SECOND,@run_start,@run_end)
-); 
+    );
+
 END;

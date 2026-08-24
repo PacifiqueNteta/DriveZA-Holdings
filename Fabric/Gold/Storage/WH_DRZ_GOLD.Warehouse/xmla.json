@@ -88,6 +88,20 @@
             ]
           },
           {
+            "name": "PostalCode",
+            "dataType": "string",
+            "sourceColumn": "PostalCode",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "PostalCode",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
             "name": "ManagerName",
             "dataType": "string",
             "sourceColumn": "ManagerName",
@@ -123,6 +137,21 @@
             "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
             "sourceProviderType": "bit",
             "sourceLineageTag": "IsActive",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "IsAirportBranch",
+            "dataType": "boolean",
+            "sourceColumn": "IsAirportBranch",
+            "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
+            "sourceProviderType": "bit",
+            "sourceLineageTag": "IsAirportBranch",
             "summarizeBy": "none",
             "annotations": [
               {
@@ -306,6 +335,121 @@
             "formatString": "\"TRUE\";\"TRUE\";\"FALSE\"",
             "sourceProviderType": "bit",
             "sourceLineageTag": "IsCurrent",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "DOB",
+            "dataType": "dateTime",
+            "sourceColumn": "DOB",
+            "formatString": "General Date",
+            "sourceProviderType": "date",
+            "sourceLineageTag": "DOB",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Gender",
+            "dataType": "string",
+            "sourceColumn": "Gender",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "Gender",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "IdNumber",
+            "dataType": "string",
+            "sourceColumn": "IdNumber",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "IdNumber",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "PassportNumber",
+            "dataType": "string",
+            "sourceColumn": "PassportNumber",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "PassportNumber",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Nationality",
+            "dataType": "string",
+            "sourceColumn": "Nationality",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "Nationality",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LoyaltyPoints",
+            "dataType": "int64",
+            "sourceColumn": "LoyaltyPoints",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "LoyaltyPoints",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "TotalRentals",
+            "dataType": "int64",
+            "sourceColumn": "TotalRentals",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "TotalRentals",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CompanyName",
+            "dataType": "string",
+            "sourceColumn": "CompanyName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "CompanyName",
             "summarizeBy": "none",
             "annotations": [
               {
@@ -853,6 +997,64 @@
                 "value": "Automatic"
               }
             ]
+          },
+          {
+            "name": "PromoDescription",
+            "dataType": "string",
+            "sourceColumn": "PromoDescription",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "PromoDescription",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ApplicableCategories",
+            "dataType": "string",
+            "sourceColumn": "ApplicableCategories",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ApplicableCategories",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "TimesUsed",
+            "dataType": "int64",
+            "sourceColumn": "TimesUsed",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "TimesUsed",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "UsageLimit",
+            "dataType": "int64",
+            "sourceColumn": "UsageLimit",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "UsageLimit",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
           }
         ],
         "partitions": [
@@ -964,6 +1166,66 @@
             ]
           },
           {
+            "name": "Color",
+            "dataType": "string",
+            "sourceColumn": "Color",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "Color",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "FuelType",
+            "dataType": "string",
+            "sourceColumn": "FuelType",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FuelType",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Transmission",
+            "dataType": "string",
+            "sourceColumn": "Transmission",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "Transmission",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Year",
+            "dataType": "double",
+            "sourceColumn": "Year",
+            "sourceProviderType": "float",
+            "sourceLineageTag": "Year",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              },
+              {
+                "name": "PBI_FormatHint",
+                "value": "{\"isGeneralNumber\":true}"
+              }
+            ]
+          },
+          {
             "name": "BranchID",
             "dataType": "string",
             "sourceColumn": "BranchID",
@@ -999,6 +1261,21 @@
             "sourceProviderType": "decimal",
             "sourceLineageTag": "DailyRateZAR",
             "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "PurchaseDate",
+            "dataType": "dateTime",
+            "sourceColumn": "PurchaseDate",
+            "formatString": "General Date",
+            "sourceProviderType": "date",
+            "sourceLineageTag": "PurchaseDate",
+            "summarizeBy": "none",
             "annotations": [
               {
                 "name": "SummarizationSetBy",

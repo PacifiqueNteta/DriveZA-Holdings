@@ -1,5 +1,5 @@
 -- DimBranch
-CREATE   PROCEDURE Marketing.uspLoadDimBranch
+CREATE     PROCEDURE Marketing.uspLoadDimBranch
 
     @pipeline_run_id VARCHAR(100),
     @pipeline_name VARCHAR(100)
@@ -41,18 +41,22 @@ BEGIN
             BranchName,
             Province,
             City,
+            PostalCode,
             ManagerName,
             FleetCapacity,
-            IsActive
+            IsActive,
+            IsAirportBranch
         )
         SELECT
             source.branch_id,
             source.branch_name,
             source.province,
             source.city,
+            source.postal_code,
             source.manager_name,
             source.fleet_capacity,
-            source.is_active
+            source.is_active,
+            source.is_airport_branch
         FROM LH_DRZ_SILVER.admn.branches source
         LEFT JOIN Marketing.DimBranch existing
             ON source.branch_id = existing.BranchID

@@ -1,5 +1,5 @@
 -- DimCustomer
-CREATE   PROCEDURE Marketing.uspLoadDimCustomer
+CREATE     PROCEDURE Marketing.uspLoadDimCustomer
     @pipeline_run_id VARCHAR(100),
     @pipeline_name VARCHAR(100)
 AS
@@ -40,10 +40,18 @@ BEGIN
             CustomerID,
             FirstName,
             LastName,
+            DOB,
+            Gender,
+            IdNumber,
+            PassportNumber,
+            Nationality,
             City,
             Province,
             LoyaltyTier,
+            LoyaltyPoints,
+            TotalRentals,            
             IsCorporateAccount,
+            CompanyName,
             EffectiveDate,
             ExpiryDate,
             IsCurrent
@@ -52,10 +60,18 @@ BEGIN
             source.customer_id,
             source.first_name,
             source.last_name,
+            source.date_of_birth,
+            source.gender,
+            source.id_number,
+            source.passport_number,
+            source.nationality,
             source.city,
             source.province,
             source.loyalty_tier,
+            source.loyalty_points,
+            source.total_rentals,
             source.is_corporate_account,
+            source.company_name,
             CAST(SYSUTCDATETIME() AS DATE),
             NULL,
             1
@@ -71,10 +87,18 @@ BEGIN
             source.customer_id,
             source.first_name,
             source.last_name,
+            source.date_of_birth,
+            source.gender,
+            source.id_number,
+            source.passport_number,
+            source.nationality,
             source.city,
             source.province,
             source.loyalty_tier,
+            source.loyalty_points,
+            source.total_rentals,
             source.is_corporate_account,
+            source.company_name,
             CAST(SYSUTCDATETIME() AS DATE),
             NULL,
             1

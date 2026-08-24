@@ -5,9 +5,11 @@ CREATE TABLE [Marketing].[DimBranch] (
 	[BranchName] varchar(100) NULL, 
 	[Province] varchar(50) NULL, 
 	[City] varchar(50) NULL, 
+	[PostalCode] varchar(30) NULL, 
 	[ManagerName] varchar(100) NULL, 
 	[FleetCapacity] int NULL, 
-	[IsActive] bit NULL
+	[IsActive] bit NULL, 
+	[IsAirportBranch] bit NULL
 );
 
 

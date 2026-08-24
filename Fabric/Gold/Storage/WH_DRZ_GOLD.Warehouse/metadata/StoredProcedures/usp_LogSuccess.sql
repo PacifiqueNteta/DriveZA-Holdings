@@ -1,3 +1,4 @@
+-- Success Log Stored Procedure
 CREATE   PROCEDURE metadata.usp_LogSuccess
 
     @pipeline_run_id VARCHAR(100),
@@ -18,57 +19,6 @@ BEGIN
     DECLARE @run_end DATETIME2(6);
 
     SET @run_end = SYSUTCDATETIME();
-
-    IF EXISTS
-    (
-        SELECT 1
-        FROM metadata.pipeline_control
-        WHERE object_name = @object_name
-    )
-    BEGIN
-
-        UPDATE metadata.pipeline_control
-        SET
-            last_run_status = 'Succeeded',
-            last_run_start = @run_start,
-            last_run_end = @run_end,
-            rows_read = @rows_read,
-            rows_written = @rows_written,
-            inserted_rows = @inserted_rows,
-            updated_rows = @updated_rows,
-            updated_date = @run_end
-        WHERE object_name = @object_name;
-
-    END
-    ELSE
-    BEGIN
-
-        INSERT INTO metadata.pipeline_control
-        (
-            object_name,
-            last_run_status,
-            last_run_start,
-            last_run_end,
-            rows_read,
-            rows_written,
-            inserted_rows,
-            updated_rows,
-            updated_date
-        )
-        VALUES
-        (
-            @object_name,
-            'Succeeded',
-            @run_start,
-            @run_end,
-            @rows_read,
-            @rows_written,
-            @inserted_rows,
-            @updated_rows,
-            @run_end
-        );
-
-    END
 
     INSERT INTO metadata.pipeline_run_log
     (
