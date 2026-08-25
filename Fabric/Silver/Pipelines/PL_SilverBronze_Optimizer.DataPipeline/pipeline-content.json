@@ -4,11 +4,8 @@
       {
         "type": "TridentNotebook",
         "typeProperties": {
-          "notebookId": "5cac473f-aef2-9995-49e3-2e8d3e48020a",
+          "notebookId": "6c730594-e9fb-964b-470e-fa7d974d6dfd",
           "workspaceId": "00000000-0000-0000-0000-000000000000"
-        },
-        "externalReferences": {
-          "connection": "6085b5ad-63b8-4732-a955-2058085991fb"
         },
         "policy": {
           "retry": 0,
@@ -16,7 +13,7 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "NB_QualityCheck",
+        "name": "NB_SilverBronze_Optimiser",
         "dependsOn": []
       }
     ]

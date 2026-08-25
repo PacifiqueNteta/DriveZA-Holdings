@@ -82,6 +82,43 @@ CREATE TABLE IF NOT EXISTS metadata.silver_config (
 USING DELTA
 """)
 
+# Data Quality Table
+spark.sql("""
+CREATE TABLE IF NOT EXISTS metadata.data_quality (
+    quality_run_id      STRING,
+    source_type         STRING,
+    source_name         STRING,
+    schema_name         STRING,
+    table_name          STRING,
+    check_name          STRING,
+    check_result        STRING,
+    check_value         STRING,
+    checked_at          TIMESTAMP
+)
+USING DELTA
+""")
+
+spark.sql(f"""
+    CREATE TABLE IF NOT EXISTS metadata.table_maintenance (
+        maintenance_run_id STRING,
+        source_type        STRING,
+        source_name        STRING,
+        schema_name        STRING,
+        table_name         STRING,
+        action             STRING,
+        action_result      STRING,
+        detail             STRING,
+        files_before       BIGINT,
+        files_after        BIGINT,
+        size_before_bytes  BIGINT,
+        size_after_bytes   BIGINT,
+        duration_seconds   INT,
+        run_at             TIMESTAMP
+    )
+    USING DELTA
+""")
+
+
 print("Silver metadata objects created successfully.")
 
 # METADATA ********************
@@ -196,13 +233,140 @@ print("Value normalization map seeded.")
 
 # CELL ********************
 
-# MAGIC %%sql
-# MAGIC UPDATE LH_DRZ_SILVER.metadata.pipeline_control
-# MAGIC SET last_watermark_value = NULL
+spark.sql("""
+CREATE OR REPLACE MATERIALIZED LAKE VIEW metadata.data_quality_summary AS
+
+SELECT
+
+    d.source_type,
+    d.source_name,
+    d.schema_name,
+    d.table_name,
+
+    MAX(
+        CASE
+            WHEN d.check_name = 'ROW_COUNT'
+            THEN CAST(d.check_value AS BIGINT)
+        END
+    ) AS row_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name = 'COLUMN_COUNT'
+            THEN CAST(d.check_value AS INT)
+        END
+    ) AS column_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'DUPLICATE%'
+            THEN d.check_result
+        END
+    ) AS duplicate_check_result,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'DUPLICATE%'
+            THEN CAST(d.check_value AS BIGINT)
+        END
+    ) AS duplicate_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'NULL%'
+            THEN d.check_result
+        END
+    ) AS null_check_result,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'NULL%'
+            THEN CAST(d.check_value AS BIGINT)
+        END
+    ) AS null_count,
+
+    MAX(
+        CASE
+            WHEN d.check_name LIKE 'FK%'
+            THEN d.check_result
+        END
+    ) AS referential_check_result,
+
+    SUM(
+        CASE
+            WHEN d.check_name LIKE 'FK%' AND d.check_result = 'FAIL'
+            THEN CAST(d.check_value AS BIGINT)
+            ELSE 0
+        END
+    ) AS total_orphaned_rows,
+
+    ROUND(
+        (
+            SUM(
+                CASE
+                    WHEN d.check_result = 'PASS'
+                    THEN 1
+                    ELSE 0
+                END
+            ) * 100.0
+        ) / COUNT(*),
+        2
+    ) AS overall_score,
+
+    CASE
+        WHEN ROUND(
+            (
+                SUM(
+                    CASE
+                        WHEN d.check_result = 'PASS'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) * 100.0
+            ) / COUNT(*),
+            2
+        ) = 100
+        THEN 'Excellent'
+
+        WHEN ROUND(
+            (
+                SUM(
+                    CASE
+                        WHEN d.check_result = 'PASS'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) * 100.0
+            ) / COUNT(*),
+            2
+        ) >= 75
+        THEN 'Good'
+
+        ELSE 'Warning'
+    END AS overall_status,
+
+    MAX(d.checked_at) AS latest_run_at
+
+FROM metadata.data_quality d
+
+WHERE d.quality_run_id = (
+    SELECT quality_run_id
+    FROM metadata.data_quality
+    ORDER BY checked_at DESC
+    LIMIT 1
+)
+
+GROUP BY
+
+    d.source_type,
+    d.source_name,
+    d.schema_name,
+    d.table_name;
+""")
 
 # METADATA ********************
 
 # META {
-# META   "language": "sparksql",
+# META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
