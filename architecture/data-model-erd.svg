@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+  <title id="title">DriveZA Gold star schema</title>
+  <desc id="desc">FactRental at the center connected to date, customer, branch, vehicle, employee, and promotion dimensions, with supporting payment, maintenance, and incident facts.</desc>
+  <style>
+    .title { font: 700 24px Arial, sans-serif; fill: #16324f; }
+    .label { font: 700 14px Arial, sans-serif; fill: #16324f; }
+    .field { font: 12px Arial, sans-serif; fill: #263746; }
+    .dimension { fill: #e7f3f8; stroke: #247ba0; stroke-width: 2; }
+    .fact { fill: #fff1d6; stroke: #d17a22; stroke-width: 2; }
+    .line { stroke: #718096; stroke-width: 2; fill: none; }
+    .key { font-weight: 700; }
+  </style>
+  <rect width="1200" height="820" fill="#f8fafc"/>
+  <text x="600" y="38" text-anchor="middle" class="title">DriveZA Gold Star Schema</text>
+
+  <g transform="translate(470 275)">
+    <rect width="260" height="190" rx="6" class="fact"/>
+    <text x="130" y="27" text-anchor="middle" class="label">Marketing.FactRental</text>
+    <text x="18" y="55" class="field key">RentalKey</text>
+    <text x="18" y="76" class="field">CustomerKey</text>
+    <text x="18" y="95" class="field">VehicleKey</text>
+    <text x="18" y="114" class="field">BranchKey</text>
+    <text x="18" y="133" class="field">EmployeeKey</text>
+    <text x="18" y="152" class="field">DateKey</text>
+    <text x="18" y="171" class="field">RentalAmount, RentalDays</text>
+  </g>
+
+  <g transform="translate(40 90)">
+    <rect width="240" height="125" rx="6" class="dimension"/>
+    <text x="120" y="27" text-anchor="middle" class="label">Marketing.DimDate</text>
+    <text x="16" y="57" class="field key">DateKey</text>
+    <text x="16" y="78" class="field">CalendarDate</text>
+    <text x="16" y="99" class="field">Year, Month, Quarter</text>
+  </g>
+  <path d="M280 175 L470 315" class="line"/>
+
+  <g transform="translate(40 310)">
+    <rect width="240" height="125" rx="6" class="dimension"/>
+    <text x="120" y="27" text-anchor="middle" class="label">Marketing.DimCustomer</text>
+    <text x="16" y="57" class="field key">CustomerKey</text>
+    <text x="16" y="78" class="field">CustomerID</text>
+    <text x="16" y="99" class="field">EffectiveDate, ExpiryDate</text>
+  </g>
+  <path d="M280 370 L470 370" class="line"/>
+
+  <g transform="translate(40 530)">
+    <rect width="240" height="125" rx="6" class="dimension"/>
+    <text x="120" y="27" text-anchor="middle" class="label">Marketing.DimBranch</text>
+    <text x="16" y="57" class="field key">BranchKey</text>
+    <text x="16" y="78" class="field">BranchID, BranchName</text>
+    <text x="16" y="99" class="field">City, Province</text>
+  </g>
+  <path d="M280 590 L470 425" class="line"/>
+
+  <g transform="translate(920 90)">
+    <rect width="240" height="125" rx="6" class="dimension"/>
+    <text x="120" y="27" text-anchor="middle" class="label">Marketing.DimVehicle</text>
+    <text x="16" y="57" class="field key">VehicleKey</text>
+    <text x="16" y="78" class="field">VehicleID, Registration</text>
+    <text x="16" y="99" class="field">Make, Model, Category</text>
+  </g>
+  <path d="M920 175 L730 315" class="line"/>
+
+  <g transform="translate(920 310)">
+    <rect width="240" height="125" rx="6" class="dimension"/>
+    <text x="120" y="27" text-anchor="middle" class="label">Marketing.DimEmployees</text>
+    <text x="16" y="57" class="field key">EmployeeKey</text>
+    <text x="16" y="78" class="field">EmployeeID, Name</text>
+    <text x="16" y="99" class="field">Role, BranchID</text>
+  </g>
+  <path d="M920 370 L730 370" class="line"/>
+
+  <g transform="translate(920 530)">
+    <rect width="240" height="125" rx="6" class="dimension"/>
+    <text x="120" y="27" text-anchor="middle" class="label">Marketing.DimPromotion</text>
+    <text x="16" y="57" class="field key">PromotionKey</text>
+    <text x="16" y="78" class="field">PromotionID, Code</text>
+    <text x="16" y="99" class="field">DiscountType, Value</text>
+  </g>
+  <path d="M920 590 L730 425" class="line"/>
+
+  <g transform="translate(350 610)">
+    <rect width="220" height="125" rx="6" class="fact"/>
+    <text x="110" y="27" text-anchor="middle" class="label">FactPayment</text>
+    <text x="16" y="57" class="field key">PaymentKey</text>
+    <text x="16" y="78" class="field">RentalKey, DateKey</text>
+    <text x="16" y="99" class="field">Amount, Status</text>
+  </g>
+  <path d="M510 610 L555 465" class="line"/>
+
+  <g transform="translate(650 610)">
+    <rect width="220" height="125" rx="6" class="fact"/>
+    <text x="110" y="27" text-anchor="middle" class="label">FactMaintenance</text>
+    <text x="16" y="57" class="field key">MaintenanceKey</text>
+    <text x="16" y="78" class="field">VehicleKey, DateKey</text>
+    <text x="16" y="99" class="field">Cost, MaintenanceType</text>
+  </g>
+  <path d="M690 610 L650 465" class="line"/>
+
+  <g transform="translate(40 700)">
+    <rect width="240" height="90" rx="6" class="fact"/>
+    <text x="120" y="27" text-anchor="middle" class="label">FactIncident</text>
+    <text x="16" y="57" class="field key">IncidentKey</text>
+    <text x="16" y="76" class="field">VehicleKey, DateKey, Severity</text>
+  </g>
+  <path d="M280 720 L470 440" class="line"/>
+</svg>

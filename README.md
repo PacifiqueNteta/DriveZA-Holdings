@@ -1,153 +1,191 @@
 # DriveZA Holdings - Data Platform
 
+> A Microsoft Fabric data platform that turns disconnected vehicle-rental data into governed, self-service analytics.
+
+![Microsoft Fabric](https://img.shields.io/badge/Microsoft%20Fabric-0078D4?logo=microsoft&logoColor=white)
+![PySpark](https://img.shields.io/badge/PySpark-E25A1C?logo=apachespark&logoColor=white)
+![Delta Lake](https://img.shields.io/badge/Delta%20Lake-0F4C81?logo=databricks&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?logo=microsoftsqlserver&logoColor=white)
+![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?logo=snowflake&logoColor=white)
+
 ## Executive Summary
 
-DriveZA Holdings is a fictional South African vehicle rental company operating across nine provinces, more than 25 cities, and 32 branches with a fleet of approximately 400 vehicles. This project addresses and simulate a common enterprise data problem encountered in some of the projects done for some clients: operational information is distributed across CRM, fleet, and administrative systems, making trusted reporting slow and difficult to govern.
+DriveZA Holdings is a fictional South African vehicle-rental company operating across nine provinces, more than 25 cities, and 32 branches with approximately 400 vehicles. Its customer, fleet, HR, branch, and payment information is distributed across systems that do not share the same structure or update process. This project brings those sources together on Microsoft Fabric and organizes them into raw, curated, and reporting-ready layers. The result is a traceable foundation for reliable dashboards, self-service analysis, and future AI and machine-learning use cases.
 
-The solution consolidates those sources on Microsoft Fabric using Data Factory pipelines, PySpark notebooks, OneLake Delta Lake storage, a Fabric Warehouse, and a dimensional serving model. The outcome is a traceable Bronze-to-Silver-to-Gold platform that supports consistent reporting, governed self-service analytics, and future AI and machine learning use cases.
-
-## Situation
-
-DriveZA Holdings operates a rental management platform (Bluebird Auto Rental Systems) for customer bookings, payments, and promotions, hosted on-premises on SQL Server . The fleet operations team separately contracted MiX by Powerfleet, fleet telematics provider for vehicle tracking, incident logging, and maintenance scheduling, with telematics data landing in an Azure SQL Server instance the fleet team manages. I used Snowflake here to simulate the Azure SQL Server in this project as I wanted to demonstrate handling a mirrored/shared external database as a source pattern. HR records are maintained in PaySpace, DriveZA's payroll and HR system of record; staff data is periodically exported and saved as a spreadsheet. Branch reference data (manager assignments, fleet capacity) is maintained separately by Branch Operations as its own manually-updated spreadsheet (Used GitHub-hosted files to simulate both). The systems used different schemas, update patterns, and delivery mechanisms. As a result, analysts would need to reconcile customer, rental, payment, vehicle, maintenance, branch, and employee data before producing reliable business views.
-
-## Task
-
-Design and implement an end-to-end data platform that integrates the disconnected sources into a governed medallion architecture. The solution needed to support reliable ingestion, reusable transformation patterns, data quality monitoring, incremental processing, and a business-ready model for reporting and natural-language analysis.
-
-The design also needed to remain extensible: new sources and schema changes should be manageable through configuration and metadata rather than repeated bespoke pipeline development.
-
-## Action
-
-### Platform Architecture
-
-The platform uses Microsoft Fabric as the integration, engineering, storage, and serving environment. Fabric Data Factory orchestrates the workloads, Fabric Notebooks perform PySpark transformations, OneLake stores Delta tables, and `WH_DRZ_GOLD` provides a relational presentation layer.
-
-The architecture separates responsibilities across three medallion layers:
-
-1. **Bronze:** raw, traceable source landing in `LH_DRZ_BRONZE` and the mirrored database `DRIVEZA_FLEET`.
-2. **Silver:** standardized, cleansed, deduplicated Delta tables in `LH_DRZ_SILVER`.
-3. **Gold:** dimensional, analytics-ready tables in `WH_DRZ_GOLD`.
-
-### Data Sources
-
-Four source feeds are integrated into the platform:
-
-- **CRM:** on-premises SQL Server tables for customers, payments, rentals, promotions, and reviews, connected through a Self-hosted Integration Runtime (SHIR).
-- **Fleet management:** Snowflake tables for vehicles, maintenance, and incidents, integrated through the native connection, simulating the Azure SQL Server.
-- **Branch administration:** GitHub-hosted CSV data loaded through an HTTP connector simulating the manually maintained Branch Operations data in spreadsheets. 
-- **Staff administration:** GitHub-hosted CSV data loaded through an HTTP connector simulating the HR records in PaySpace, the company's payroll and HR system of record accessible to the rest of the business as periodic manual exports saved to a SharePoint spreadsheet.
-
-The design supports both incremental operational sources and full file-based loads, with source-specific control logic rather than forcing every system into the same ingestion pattern.
-
-### Bronze Layer
-
-`LH_DRZ_BRONZE` is the raw landing and observability layer. Source data is captured with minimal transformation so that the original structure remains available for replay, reconciliation, and lineage.
-
-- Fabric pipelines load CRM, branch, and staff data.
-- Watermark notebooks manage incremental CRM processing using source `updated_at` values.
-- Metadata columns record ingestion timestamps, source system, source file, and load context.
-- Schema evolution checks compare incoming CRM structures with existing Bronze tables and record changes.
-- Data quality notebooks validate expected tables, row counts, and null patterns before downstream processing.
-- Pipeline control and run-log tables provide operational traceability, including failure records.
-
-Fleet data is made available in the workspace by mirroring the Snowflake `DRIVEZA_FLEET` data base in fabric.
-
-### Silver Layer
-
-`LH_DRZ_SILVER` is the curated Delta Lake layer. The Silver transformation reads Bronze tables and the `DRIVEZA_FLEET` mirrored database, then produces consistent tables for downstream modeling.
-
-- Column names and data types are standardized across sources.
-- Null tokens and inconsistent values are normalized.
-- Duplicate records are removed using configured business keys and ordering rules.
-- Record hashes support change detection and efficient incremental merges.
-- Delta `MERGE` and overwrite patterns handle inserts, updates, and first-load scenarios.
-- Metadata tables such as `metadata.silver_config`, `metadata.pipeline_control`, and `metadata.pipeline_run_log` make processing rules and execution history explicit.
-- Pipe-delimited add-on data is expanded into child records where required.
-
-### Gold Layer
-
-`WH_DRZ_GOLD` is the analytics and reporting layer. Silver tables are loaded into a star schema through warehouse stored procedures, separating reusable dimensions from measurable business events.
-
-The model includes date, customer, branch, vehicle, employee, and promotion dimensions, together with rental, payment, maintenance, and incident facts. Slowly changing customer dimension behavior is supported through current-record tracking and effective and expiry dates. This model gives analysts consistent join paths and reusable definitions for operational and commercial KPIs.
-
-### Governance and Security
-
-The platform is designed to support Microsoft Purview as the governance plane: catalog discovery, automated lineage across Fabric assets, data classification, and sensitivity labels can be applied to the source-to-report path. Access should be managed through workspace and item permissions, with least-privilege access to raw, curated, and presentation layers.
-
-The implemented data platform already contributes the operational controls needed for governance, including source metadata, pipeline run history, schema-change logs, and repeatable layer boundaries. Purview registration and policy configuration are the natural extension for enterprise cataloging and compliance; they are not represented as separate configuration files in this repository.
-
-### Business Consumption
-
-The Gold warehouse is intended to serve a Power BI semantic model and reporting layer, with Direct Lake as the serving pattern identified in the project technology stack. The dimensional model provides a stable foundation for executive dashboards, operational reporting, and self-service analysis.
-
-For conversational consumption, the governed semantic model can be connected to a Fabric Data Agent and exposed through Microsoft 365 Copilot. This allows users to ask questions in natural language while keeping answers grounded in approved business entities and measures. The repository contains the data platform and serving foundations; tenant-level Data Agent, Copilot, and report configuration are managed in the Fabric and Microsoft 365 services rather than stored here.
-
-### Architecture Diagram
+## Architecture Overview
 
 ![DriveZA data platform architecture](architecture/DriveZa%20Architecture.drawio.svg)
 
-## Result
+Fabric Data Factory orchestrates ingestion and transformation, OneLake stores Delta data, and `WH_DRZ_GOLD` presents a dimensional model for reporting. The three layers have deliberately separate responsibilities:
 
-The project produces a single governed path from disconnected operational systems to business-ready analytics. DriveZA can reconcile rental activity with customers, payments, vehicles, branches, employees, maintenance, and incidents without rebuilding source-specific logic in every report.
-
-The metadata-driven controls and medallion boundaries improve operational reliability and make the platform easier to extend as new tables or schema changes appear. Delta Lake storage supports scalable incremental processing, while the Warehouse star schema gives reporting users consistent dimensions, facts, and KPI relationships.
-
-Most importantly, the solution moves analytics closer to self-service without sacrificing traceability. With Purview governance, a certified semantic model, and a Data Agent or Microsoft 365 Copilot consumption path, the platform is positioned for governed natural-language analytics and future predictive or machine learning workloads.
-
-## Technical Implementation
-
-### Source Systems
-
-| Source system | Platform | Data domains | Integration method |
-|---|---|---|---|
-| CRM | On-premises SQL Server | Customers, payments, rentals, promotions, reviews | Self-hosted Integration Runtime (SHIR) |
-| Fleet management | Snowflake | Vehicles, maintenance, incidents | Native Fabric connection |
-| Branch administration | GitHub CSV | Branches | HTTP connector |
-| Staff administration | GitHub CSV | Staff | HTTP connector |
-
-### Medallion Layers
-
-| Layer | Fabric item | Responsibility |
+| Layer | Purpose | Fabric asset |
 |---|---|---|
-| Bronze | `LH_DRZ_BRONZE` | Raw source landing, ingestion metadata, watermarks, and quality checks |
-| Silver | `LH_DRZ_SILVER` | Cleansed, typed, standardized, deduplicated, and incrementally merged Delta tables |
-| Gold | `WH_DRZ_GOLD` | Dimensional warehouse model for semantic models and reporting |
+| Bronze | Preserve raw source data and ingestion context | `LH_DRZ_BRONZE` and `DRIVEZA_FLEET` mirror |
+| Silver | Clean, standardize, deduplicate, and incrementally merge data | `LH_DRZ_SILVER` |
+| Gold | Serve reusable dimensions and facts for analytics | `WH_DRZ_GOLD` |
 
-### Technology Stack
+## Business Problem
 
-- **Cloud platform:** Microsoft Fabric
-- **Orchestration:** Fabric Data Factory pipelines
-- **Transformation:** PySpark Fabric Notebooks and SQL scripts
-- **Storage:** OneLake with Delta Lake tables
-- **Source systems:** SQL Server 2022, Snowflake, and GitHub raw files
-- **Serving:** Fabric Warehouse with T-SQL and Direct Lake semantic model pattern
-- **Governance direction:** Microsoft Purview catalog, lineage, classification, and sensitivity labels
-- **Version control:** GitHub with Fabric Git integration
+- The rental platform, Bluebird Auto Rental Systems, manages bookings, customers, payments, and promotions on an on-premises SQL Server.
+- Fleet operations use MiX by Powerfleet for vehicle tracking, incident logging, and maintenance scheduling. Its data lands in an Azure SQL Server managed by the fleet team.
+- HR records are mastered in PaySpace and periodically exported as spreadsheets, while Branch Operations maintains branch managers and fleet capacity in a separate spreadsheet.
+- This project uses SQL Server for the CRM, Snowflake to simulate the fleet team's Azure SQL Server and demonstrate a mirrored/shared external database pattern, and GitHub-hosted CSV files to simulate the HR and branch spreadsheet exports.
+- The sources use different schemas, keys, delivery mechanisms, and refresh frequencies.
+- Analysts must reconcile rental, payment, customer, vehicle, branch, employee, maintenance, and incident data before producing trusted metrics.
+- Without shared controls, transformation logic is duplicated across reports and the path from source to KPI is difficult to audit.
 
-### Key Engineering Patterns
+## Solution Overview
 
-- **Incremental watermark loading:** CRM and Snowflake-oriented processing uses source `updated_at` watermarks to limit extraction to changed records and maintain repeatable pipeline state.
-- **Metadata-driven pipelines:** Control tables such as `pipeline_watermark`, `pipeline_control`, `pipeline_run_log`, and `silver_config` centralize execution state, business keys, active flags, and transformation behavior.
-- **Schema evolution:** Incoming structures are compared with existing Bronze schemas, with compatible additions recorded and handled before transformation continues.
-- **Delta Lake patterns:** Silver tables use durable Delta storage for transactional writes, schema management, change detection, and reliable replayable processing.
-- **Merge and upsert logic:** Business keys and record hashes drive insert, update, and no-change decisions, avoiding unnecessary rewrites while preserving current data.
-- **Data quality checks:** Dedicated validation notebooks inspect expected objects, row counts, null patterns, and load outcomes; failures are captured in pipeline metadata.
-- **Dimensional modeling:** Gold uses conformed dimensions and fact tables, including effective and expiry dates for changing customer attributes, to provide predictable reporting relationships.
+The platform integrates four source feeds into Microsoft Fabric and applies source-appropriate ingestion patterns. Bronze preserves what arrived, Silver creates consistent Delta tables, and Gold provides a warehouse star schema for reporting. Configuration tables, watermarks, schema checks, and run logs make the process reusable and observable.
 
-### Repository Structure
+## Technology Stack
+
+| Area | Technology |
+|---|---|
+| Cloud platform | Microsoft Fabric |
+| Orchestration | Fabric Data Factory pipelines |
+| Transformation | PySpark Fabric Notebooks and SQL scripts |
+| Storage | OneLake with Delta Lake tables |
+| Source systems | SQL Server 2022, Snowflake, and GitHub raw files |
+| Serving | Fabric Warehouse with T-SQL and Direct Lake semantic model pattern |
+| Governance | Microsoft Purview catalog and governance capabilities |
+| Version control | GitHub with Fabric Git integration |
+
+## Data Sources
+
+| Operational source | Project substitute | Data domains | Fabric integration |
+|---|---|---|---|
+| Bluebird Auto Rental Systems, on-premises SQL Server | SQL Server CRM source | Customers, payments, rentals, promotions, reviews | Self-hosted Integration Runtime (SHIR) |
+| MiX by Powerfleet data in fleet-managed Azure SQL Server | Snowflake database, mirrored into Fabric as `DRIVEZA_FLEET` | Vehicles, maintenance, incidents | Native connection and Fabric mirror |
+| Branch Operations spreadsheet | GitHub-hosted CSV | Branches, manager assignments, fleet capacity | HTTP connector; full-load pattern |
+| PaySpace HR export spreadsheet | GitHub-hosted CSV | Staff and employee reference data | HTTP connector; full-load pattern |
+
+Snowflake and GitHub are deliberate project substitutes for the production-like source patterns above. They allow the implementation to demonstrate external database mirroring and file-based ingestion without requiring access to the fictional company's operational systems.
+
+## Medallion Architecture
+
+### Bronze
+
+`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. CRM processing uses source `updated_at` watermarks; branch and staff files use full-load ingestion. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
+
+- Ingestion metadata records timestamps, source systems, source files, and load context.
+- Schema-evolution checks compare incoming CRM structures with existing Bronze tables.
+- Data-quality notebooks validate expected objects, row counts, and null patterns.
+- Pipeline control, run-log, and failure records provide operational traceability.
+
+### Silver
+
+`LH_DRZ_SILVER` is the curated Delta Lake layer. The Silver transformation reads Bronze tables and the fleet mirror, then prepares stable tables for downstream modeling.
+
+- Standardizes column names, data types, null tokens, and business values.
+- Removes duplicates using configured business keys and ordering rules.
+- Uses record hashes for change detection and efficient incremental processing.
+- Applies Delta `MERGE` and overwrite patterns for inserts, updates, and first-load scenarios.
+- Uses `metadata.silver_config`, `metadata.pipeline_control`, and `metadata.pipeline_run_log` for configuration and execution history.
+- Expands pipe-delimited add-on data into child records where required.
+
+### Gold
+
+`WH_DRZ_GOLD` is the reporting and analytics layer. Warehouse stored procedures load a star schema from Silver, separating reusable dimensions from measurable business events.
+
+The model contains six dimensions: `DimDate`, `DimCustomer`, `DimBranch`, `DimVehicle`, `DimEmployees`, and `DimPromotion`. It contains four facts: `FactRental`, `FactPayment`, `FactMaintenance`, and `FactIncident`. Customer history uses current-record tracking with effective and expiry dates, providing stable relationships for operational and commercial KPIs.
+
+## Key Engineering Features
+
+- **Incremental watermark loading:** Source `updated_at` values limit CRM extraction to changed records and persist repeatable pipeline state.
+- **Metadata-driven processing:** Watermark, control, run-log, and Silver configuration tables centralize business keys, active flags, execution state, and transformation behavior.
+- **Schema evolution:** Incoming structures are compared with existing Bronze schemas, with compatible additions recorded before transformation continues.
+- **Delta Lake patterns:** Silver uses durable Delta tables for transactional writes, schema management, change detection, and replayable processing.
+- **Merge and upsert logic:** Business keys and record hashes distinguish inserts, updates, and unchanged records while avoiding unnecessary rewrites.
+- **Data quality checks:** Dedicated notebooks validate expected tables, row counts, null patterns, schema changes, and load outcomes.
+- **Operational observability:** Pipeline run logs and failure records make each load traceable from orchestration through table-level processing.
+- **Dimensional modeling:** Gold provides conformed dimensions and facts, including effective and expiry dates for changing customer attributes.
+
+## Data Model
+
+![DriveZA Gold star schema](architecture/data-model-erd.svg)
+
+The Gold model is a rental-operations star schema. `FactRental` is the central business event and connects reporting activity to customer, vehicle, branch, employee, promotion, and date dimensions. Payment, maintenance, and incident facts provide additional financial and operational views.
+
+## Governance
+
+### Built
+
+- Bronze, Silver, and Gold boundaries separate raw, curated, and reporting data.
+- Source metadata, pipeline control, run logs, failure records, and schema-change logs support traceability.
+- Business keys and transformation rules are managed through configuration tables.
+- Lakehouse and warehouse assets provide distinct processing and consumption boundaries.
+
+### Planned or Service-Managed
+
+- Microsoft Purview catalog registration and automated lineage across Fabric assets.
+- Classification and sensitivity labels for customer and employee data.
+- Least-privilege workspace and item access policies.
+- Certified semantic model, Fabric Data Agent, and Microsoft 365 Copilot configuration.
+
+Purview, Power BI, Data Agent, and Copilot settings are service-level configurations and are not stored as repository files.
+
+## Results / Metrics
+
+The implemented scope provides the following measurable coverage:
+
+| Metric | Current scope |
+|---|---:|
+| Integrated source feeds | 4 |
+| Medallion layers | 3 |
+| Gold dimensions | 6 |
+| Gold fact tables | 4 |
+| Gold tables | 10 |
+| Loading patterns | Incremental and full-load |
+
+The business result is one traceable path from disconnected operational systems to reusable analytics. The platform is designed to scale by adding metadata and source-specific configuration instead of duplicating an entire pipeline for every table.
+
+## Lessons Learned / Design Decisions
+
+- **Fabric as the platform:** A single environment covers orchestration, notebooks, OneLake, lakehouse processing, warehouse serving, and semantic-model foundations.
+- **Three layers:** Separating raw preservation, curation, and presentation limits coupling and makes failures easier to isolate.
+- **Metadata over duplication:** Watermarks, business keys, and control state vary by source and table, so configuration is more maintainable than bespoke pipelines.
+- **Warehouse for Gold:** A relational star schema gives reporting users predictable joins and stable business entities after flexible lakehouse processing.
+- **Source-specific ingestion:** SQL Server, Snowflake, and file feeds have different delivery and change patterns; applying one universal strategy would reduce reliability.
+
+## Limitations & Future Improvements
+
+- Source systems and data are synthetic; production use would require real connections, credentials, networking, and operational SLAs.
+- Purview policies, sensitivity labels, access groups, Power BI reports, Data Agent, and Copilot settings are service-managed rather than stored here.
+- Automated unit, integration, and data-reconciliation tests should be added around each source and layer.
+- Future improvements include CI/CD validation, richer quality thresholds, SLA monitoring, late-arriving fact handling, and incremental refresh optimization.
+- The curated model provides a foundation for forecasting, anomaly detection, and other governed AI/ML workloads.
+
+## How to Explore This Repo
+
+1. Start with the architecture diagram and Gold ERD in `architecture/`.
+2. Review Bronze notebooks and pipelines for ingestion, watermarks, quality checks, and failure handling.
+3. Read `Fabric/Silver/Notebooks/NB_Silver_Transformation.Notebook/notebook-content.py` for standardization, deduplication, and merge behavior.
+4. Inspect Gold table DDL and stored procedures under `Fabric/Gold/Storage/WH_DRZ_GOLD.Warehouse/`.
+5. Review the SQL Server and Snowflake DDL and loaders under `src/`.
+6. Read the supporting design notes in `docs/`.
+
+## Repository Structure
 
 ```
 DriveZA-Holdings/
+├── README.md
 ├── architecture/
 │   ├── Architecture Diagram.png
-│   ├── DriveZa Architecture.drawio.png
-│   └── DriveZa Architecture.drawio.svg
+│   ├── DriveZa Architecture.png
+│   ├── DriveZa Architecture.drawio.svg
+│   └── data-model-erd.svg
+├── docs/
+│   ├── data-sources.md
+│   ├── metadata-framework.md
+│   ├── governance.md
+│   ├── design-decisions.md
+│   └── limitations.md
 ├── data/
 │   ├── README.md
 │   └── raw-landing/admin/
 │       ├── crm_branches.csv
 │       └── hr_staff.csv
-├── docs/
 ├── Fabric/
 │   ├── Bronze/
 │   │   ├── Notebooks/
@@ -157,12 +195,10 @@ DriveZA-Holdings/
 │   │   ├── Notebooks/
 │   │   ├── Pipelines/
 │   │   └── Storage/
-│   ├── Gold/
-│   │   ├── Notebooks/
-│   │   ├── Pipelines/
-│   │   └── Storage/
-│   └── Readme.md
-├── README.md
+│   └── Gold/
+│       ├── Notebooks/
+│       ├── Pipelines/
+│       └── Storage/
 └── src/
     ├── snowflake/
     │   ├── ddl/
@@ -174,10 +210,16 @@ DriveZA-Holdings/
 
 ## Key Achievements
 
-- Delivered an end-to-end Microsoft Fabric medallion implementation.
-- Built a metadata-driven ingestion and transformation framework.
-- Integrated SQL Server, Snowflake, and GitHub file sources with source-specific loading patterns.
-- Implemented complementary Lakehouse and Warehouse architecture for scalable engineering and business consumption.
-- Developed a dimensional serving model for semantic models and Power BI reporting.
-- Established governance foundations through lineage-ready metadata, audit logs, classification and sensitivity-label design, and Purview integration planning.
-- Enabled a path to governed natural-language analytics through a Fabric Data Agent and Microsoft 365 Copilot integration.
+- End-to-end Microsoft Fabric implementation using Bronze, Silver, and Gold layers.
+- Metadata-driven ingestion and transformation framework with operational logging.
+- Multi-source integration across SQL Server, Snowflake, and GitHub-hosted files.
+- Complementary Lakehouse and Warehouse architecture for engineering and reporting.
+- Dimensional model foundation for semantic models and Power BI reporting.
+- Governance-ready design with lineage, classification, sensitivity-label, and access-control pathways.
+- Clear route to governed natural-language analytics through Fabric Data Agent and Microsoft 365 Copilot.
+
+## Contact / Links
+
+- **Author:** Pacifique Nteta
+- **GitHub:** [DriveZA-Holdings](https://github.com/PacifiqueNteta/DriveZA-Holdings)
+- **LinkedIn:** Add profile URL here
