@@ -14,7 +14,7 @@ DriveZA Holdings is a fictional South African vehicle-rental company operating a
 
 ## Architecture Overview
 
-![DriveZA data platform architecture](architecture/DriveZa%20Architecture.drawio.svg)
+![DriveZA data platform architecture](architecture/DriveZa%20Architecture%20(1).png)
 
 The Fabric task flow connects administration and fleet/CRM ingestion to Bronze, Silver transformation, Gold transformation, and business-facing data visualization.
 
@@ -90,11 +90,13 @@ The Bronze control table records the status and row counts for CRM and file-base
 
 ![Bronze pipeline control table](screenshots/Pipeline%20Control.png)
 
+CRM table configuration defines the source table, destination, load type, watermark column, and active status used by the metadata-driven CRM pipeline:
+
+![CRM configuration table](screenshots/crm%20config%20table.png)
+
 The administration pipeline looks up active file definitions, filters them, and processes each file through a reusable `ForEach` activity:
 
 ![Bronze administration pipeline](screenshots/PL_Bronze_Admin.png)
-
-
 
 ![Bronze administration ForEach activity](screenshots/PL_Bronze_Admin%28Inside%20ForEach%29.png)
 
@@ -102,11 +104,7 @@ The CRM pipeline applies the same metadata-oriented pattern to active CRM tables
 
 ![Bronze CRM pipeline](screenshots/PL_Bronze_CRM.png)
 
-
-
 ![Bronze CRM ForEach activity](screenshots/PL_Bronze_CRM%28Inside%20For%20Each%29.png)
-
-
 
 ![Bronze CRM load-type switch](screenshots/PL_Bronze_CRM%28Inside%20Switch%29.png)
 
@@ -124,6 +122,10 @@ The CRM pipeline applies the same metadata-oriented pattern to active CRM tables
 ### Gold
 
 `WH_DRZ_GOLD` is the reporting and analytics layer. Warehouse stored procedures load a star schema from Silver, separating reusable dimensions from measurable business events.
+
+The Gold pipeline coordinates the final warehouse transformations and prepares the reporting-ready model:
+
+![Gold transformation pipeline](screenshots/gold%20pipeline.png)
 
 The model contains six dimensions: `DimDate`, `DimCustomer`, `DimBranch`, `DimVehicle`, `DimEmployees`, and `DimPromotion`. It contains four facts: `FactRental`, `FactPayment`, `FactMaintenance`, and `FactIncident`. Customer history uses current-record tracking with effective and expiry dates, providing stable relationships for operational and commercial KPIs.
 
@@ -227,7 +229,9 @@ DriveZA-Holdings/
 │   ├── Bronze Config table.png
 │   ├── Bronze Lakehouse.png
 │   ├── Bronze Storage.png
+│   ├── crm config table.png
 │   ├── DriveZa Task FLow.png
+│   ├── gold pipeline.png
 │   ├── Pipeline Control.png
 │   ├── PL_Bronze_Admin.png
 │   ├── PL_Bronze_Admin(Inside ForEach).png
