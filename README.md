@@ -16,6 +16,10 @@ DriveZA Holdings is a fictional South African vehicle-rental company operating a
 
 ![DriveZA data platform architecture](architecture/DriveZa%20Architecture.drawio.svg)
 
+The Fabric task flow connects administration and fleet/CRM ingestion to Bronze, Silver transformation, Gold transformation, and business-facing data visualization.
+
+![DriveZA Fabric task flow](screenshots/DriveZa%20Task%20FLow.png)
+
 Fabric Data Factory orchestrates ingestion and transformation, OneLake stores Delta data, and `WH_DRZ_GOLD` presents a dimensional model for reporting. The three layers have deliberately separate responsibilities:
 
 | Layer | Purpose | Fabric asset |
@@ -68,10 +72,43 @@ Snowflake and GitHub are deliberate project substitutes for the production-like 
 
 `LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. CRM processing uses source `updated_at` watermarks; branch and staff files use full-load ingestion. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
 
+The Fabric workspace contains both the Bronze lakehouse and the mirrored fleet database used by the ingestion layer:
+
+![Bronze storage assets](screenshots/Bronze%20Storage.png)
+![Bronze lakehouse structure](screenshots/Bronze%20Lakehouse.png)
+
 - Ingestion metadata records timestamps, source systems, source files, and load context.
 - Schema-evolution checks compare incoming CRM structures with existing Bronze tables.
 - Data-quality notebooks validate expected objects, row counts, and null patterns.
 - Pipeline control, run-log, and failure records provide operational traceability.
+
+The administration file configuration is metadata-driven. Active file definitions identify the source system, file name, destination schema and table, load type, and delimiter:
+
+![Bronze configuration table](screenshots/Bronze%20Config%20table.png)
+
+The Bronze control table records the status and row counts for CRM and file-based loads, providing an operational view of the latest ingestion state:
+
+![Bronze pipeline control table](screenshots/Pipeline%20Control.png)
+
+The administration pipeline looks up active file definitions, filters them, and processes each file through a reusable `ForEach` activity:
+
+![Bronze administration pipeline](screenshots/PL_Bronze_Admin.png)
+
+
+
+![Bronze administration ForEach activity](screenshots/PL_Bronze_Admin%28Inside%20ForEach%29.png)
+
+The CRM pipeline applies the same metadata-oriented pattern to active CRM tables, then routes each table according to its load type:
+
+![Bronze CRM pipeline](screenshots/PL_Bronze_CRM.png)
+
+
+
+![Bronze CRM ForEach activity](screenshots/PL_Bronze_CRM%28Inside%20For%20Each%29.png)
+
+
+
+![Bronze CRM load-type switch](screenshots/PL_Bronze_CRM%28Inside%20Switch%29.png)
 
 ### Silver
 
@@ -186,6 +223,17 @@ DriveZA-Holdings/
 │   └── raw-landing/admin/
 │       ├── crm_branches.csv
 │       └── hr_staff.csv
+├── screenshots/
+│   ├── Bronze Config table.png
+│   ├── Bronze Lakehouse.png
+│   ├── Bronze Storage.png
+│   ├── DriveZa Task FLow.png
+│   ├── Pipeline Control.png
+│   ├── PL_Bronze_Admin.png
+│   ├── PL_Bronze_Admin(Inside ForEach).png
+│   ├── PL_Bronze_CRM.png
+│   ├── PL_Bronze_CRM(Inside For Each).png
+│   └── PL_Bronze_CRM(Inside Switch).png
 ├── Fabric/
 │   ├── Bronze/
 │   │   ├── Notebooks/
