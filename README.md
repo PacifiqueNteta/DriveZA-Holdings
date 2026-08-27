@@ -274,4 +274,4 @@ DriveZA-Holdings/
 
 - **Author:** Pacifique Nteta
 - **GitHub:** [DriveZA-Holdings](https://github.com/PacifiqueNteta/DriveZA-Holdings)
-- **LinkedIn:** Add profile URL here
+- **LinkedIn:** [Pacifique Nteta](www.linkedin.com/in/pacifique-nteta)
