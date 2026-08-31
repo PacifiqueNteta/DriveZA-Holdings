@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-DriveZA Holdings is a fictional South African vehicle-rental company operating across nine provinces, more than 25 cities, and 32 branches with approximately 400 vehicles. Its customer, fleet, HR, branch, and payment information is distributed across systems that do not share the same structure or update process. This project brings those sources together on Microsoft Fabric and organizes them into raw, curated, and reporting-ready layers. The result is a traceable foundation for reliable dashboards, self-service analysis, and future AI and machine-learning use cases.
+DriveZA Holdings is a vehicle-rental company operating across nine provinces, more than 25 cities, and 32 branches with approximately 400 vehicles. Its customer, fleet, HR, branch, and payment information is distributed across systems that do not share the same structure or update process. This project brings those sources together on Microsoft Fabric and organizes them into raw, curated, and reporting-ready layers. The result is a traceable foundation for reliable dashboards, self-service analysis, and future AI and machine-learning use cases.
 
 ## Architecture Overview
 
@@ -32,7 +32,7 @@ Fabric Data Factory orchestrates ingestion and transformation, OneLake stores De
 
 - The rental platform, Bluebird Auto Rental Systems, manages bookings, customers, payments, and promotions on an on-premises SQL Server.
 - Fleet operations use MiX by Powerfleet for vehicle tracking, incident logging, and maintenance scheduling. Its data lands in an Azure SQL Server managed by the fleet team.
-- HR records are mastered in PaySpace and periodically exported as spreadsheets, while Branch Operations maintains branch managers and fleet capacity in a separate spreadsheet.
+- HR records are mastered in PaySpace and periodically exported as spreadsheets, while Branch Operations maintains branch managers and fleet capacity in a separate spreadsheet.1wssfh.0o5
 - This project uses SQL Server for the CRM, Snowflake to simulate the fleet team's Azure SQL Server and demonstrate a mirrored/shared external database pattern, and GitHub-hosted CSV files to simulate the HR and branch spreadsheet exports.
 - The sources use different schemas, keys, delivery mechanisms, and refresh frequencies.
 - Analysts must reconcile rental, payment, customer, vehicle, branch, employee, maintenance, and incident data before producing trusted metrics.
@@ -48,7 +48,7 @@ The platform integrates four source feeds into Microsoft Fabric and applies sour
 |---|---|
 | Cloud platform | Microsoft Fabric |
 | Orchestration | Fabric Data Factory pipelines |
-| Transformation | PySpark Fabric Notebooks and SQL scripts |
+| Transformation | PySpark Fabric Notebooks and SQL Stored Procedures |
 | Storage | OneLake with Delta Lake tables |
 | Source systems | SQL Server 2022, Snowflake, and GitHub raw files |
 | Serving | Fabric Warehouse with T-SQL and Direct Lake semantic model pattern |
@@ -64,13 +64,13 @@ The platform integrates four source feeds into Microsoft Fabric and applies sour
 | Branch Operations spreadsheet | GitHub-hosted CSV | Branches, manager assignments, fleet capacity | HTTP connector; full-load pattern |
 | PaySpace HR export spreadsheet | GitHub-hosted CSV | Staff and employee reference data | HTTP connector; full-load pattern |
 
-Snowflake and GitHub are deliberate project substitutes for the production-like source patterns above. They allow the implementation to demonstrate external database mirroring and file-based ingestion without requiring access to the fictional company's operational systems.
+Snowflake and GitHub are deliberate project substitutes for the production-like source patterns above. They allow the implementation to demonstrate external database mirroring and file-based ingestion.
 
 ## Medallion Architecture
 
 ### Bronze
 
-`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. CRM processing uses source `updated_at` watermarks; branch and staff files use full-load ingestion. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
+`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. CRM processing uses source `updated_at` watermarks; branh and staff files use full-load ingestion. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
 
 The Fabric workspace contains both the Bronze lakehouse and the mirrored fleet database used by the ingestion layer:
 
@@ -142,7 +142,7 @@ The model contains six dimensions: `DimDate`, `DimCustomer`, `DimBranch`, `DimVe
 
 ## Data Model
 
-![DriveZA Gold star schema](architecture/data-model-erd.svg)
+![DriveZA Gold star schema](architecture/DriveZA_ERD.png)
 
 The Gold model is a rental-operations star schema. `FactRental` is the central business event and connects reporting activity to customer, vehicle, branch, employee, promotion, and date dimensions. Payment, maintenance, and incident facts provide additional financial and operational views.
 
@@ -275,3 +275,12 @@ DriveZA-Holdings/
 - **Author:** Pacifique Nteta
 - **GitHub:** [DriveZA-Holdings](https://github.com/PacifiqueNteta/DriveZA-Holdings)
 - **LinkedIn:** [Pacifique Nteta](https://www.linkedin.com/in/pacifique-nteta)
+
+
+```mermaid
+flowchart LR
+  Pipeline["Collect → Analyze → Report → Gold"] --> Model["Review semantic model"]
+  Model --> App["FAR interactive workbench"]
+  App --> Estate["3D workspace estate"]
+  App --> Decisions["Findings and specialist analysis"]
+```
