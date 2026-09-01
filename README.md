@@ -70,7 +70,10 @@ Snowflake and GitHub are deliberate project substitutes for the production-like 
 
 ### Bronze
 
-`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. CRM processing uses source `updated_at` watermarks; branh and staff files use full-load ingestion. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
+`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
+For the data landing in the Bronze lakhouse `LH_DRZ_BRONZE`,
+
+CRM processing uses source `updated_at` watermarks; branh and staff files use full-load ingestion. 
 
 The Fabric workspace contains both the Bronze lakehouse and the mirrored fleet database used by the ingestion layer:
 
@@ -81,6 +84,12 @@ The Fabric workspace contains both the Bronze lakehouse and the mirrored fleet d
 - Schema-evolution checks compare incoming CRM structures with existing Bronze tables.
 - Data-quality notebooks validate expected objects, row counts, and null patterns.
 - Pipeline control, run-log, and failure records provide operational traceability.
+
+The mirrored fleet database is connected to the workspace and made available for direct reference:
+
+![Mirrored Database in workspace](screenshots/Mirrored%20Database%20Availed%20in%20the%20Workspace.png)
+
+![Mirrored Database detail](screenshots/Mirrored%20Database.png)
 
 The administration file configuration is metadata-driven. Active file definitions identify the source system, file name, destination schema and table, load type, and delimiter:
 
@@ -108,9 +117,85 @@ The CRM pipeline applies the same metadata-oriented pattern to active CRM tables
 
 ![Bronze CRM load-type switch](screenshots/PL_Bronze_CRM%28Inside%20Switch%29.png)
 
+![Bronze CRM retry mechanism](screenshots/Bronze%20CRM%20retry%20.png)
+
+![Bronze record failure handling](screenshots/Bronze%20Record%20Failure.png)
+
+#### CRM Ingestion Pipeline
+
+The CRM pipeline extracts changed records from SQL Server using a metadata-driven, watermark-based incremental loading pattern:
+
+```mermaid
+flowchart TD
+    Start([Fabric Data Factory Scheduler]) --> LKP["LKP_GetCRMConfig<br/>Read crm_config.csv"]
+    LKP --> FLTR["FLTR_ActiveTables<br/>Filter is_active=1"]
+    FLTR --> ForEach["ForEach_CrmTable<br/>Iterate active tables"]
+    
+    ForEach --> GetWM["NB_GetWatermark<br/>Get last updated_at<br/>Extract watermark value"]
+    GetWM --> Switch{SW_LoadType<br/>load_type?}
+    
+    Switch -->|incremental| CPYIncr["CPY_Incremental<br/>Copy WHERE updated_at > watermark<br/>Append to Bronze"]
+    Switch -->|full| CPYFull["CPY_Full<br/>Copy entire table<br/>Upsert to Bronze"]
+    Switch -->|invalid| RecordInvalid["NB_RecordFailure_LoadType<br/>Log unrecognized load type"]
+    
+    CPYIncr --> SuccessIncr{Success?}
+    CPYFull --> SuccessFull{Success?}
+    
+    SuccessIncr -->|Yes| UpdateWMIncr["NB_UpdateWatermark<br/>_IncrementalCPY<br/>Persist new watermark"]
+    SuccessIncr -->|No| FailIncr["NB_RecordFailure<br/>_IncrementalCPY<br/>Log failure details"]
+    
+    SuccessFull -->|Yes| UpdateWMFull["NB_UpdateWatermark<br/>_FullCPY<br/>Persist new watermark"]
+    SuccessFull -->|No| FailFull["NB_RecordFailure<br/>_FullCPY<br/>Log failure details"]
+    
+    UpdateWMIncr --> Complete["Pipeline Complete<br/>Data ready in Bronze"]
+    FailIncr --> Complete
+    UpdateWMFull --> Complete
+    FailFull --> Complete
+    RecordInvalid --> Complete
+    
+    style Start fill:#4472C4
+    style LKP fill:#70AD47
+    style FLTR fill:#70AD47
+    style ForEach fill:#4472C4
+    style GetWM fill:#70AD47
+    style Switch fill:#FF6B6B
+    style CPYIncr fill:#FFC000
+    style CPYFull fill:#FFC000
+    style Complete fill:#5B9BD5
+```
+
+#### Admin File Ingestion Pipeline
+
+The Admin pipeline processes GitHub-hosted CSV files (branches and staff) using a metadata-driven full-load pattern:
+
+```mermaid
+flowchart TD
+    Start([Fabric Data Factory Scheduler]) --> AdminConfig["Load Admin Config<br/>Active file definitions"]
+    AdminConfig --> AdminFilter["Filter Active Files<br/>branches.csv, staff.csv"]
+    AdminFilter --> ForEach["ForEach File Activity<br/>Reusable processing"]
+    ForEach --> Fetch["Fetch from GitHub HTTP<br/>Download CSV"]
+    Fetch --> Parse["Parse CSV<br/>Map to schema"]
+    Parse --> LoadAdmin["Load to Bronze<br/>Full-load pattern"]
+    LoadAdmin --> DQCheck["Data Quality Check<br/>Row counts, nulls, keys"]
+    DQCheck --> Success{Quality<br/>Passed?}
+    Success -->|Yes| LogRun["Log Pipeline Run<br/>Metadata + Control"]
+    Success -->|No| RecordFailure["Record Failure<br/>Retry on next run"]
+    RecordFailure --> LogRun
+    LogRun --> Bronze["Admin Data Ready<br/>LH_DRZ_BRONZE"]
+    
+    style Start fill:#4472C4
+    style Fetch fill:#70AD47
+    style Bronze fill:#FFC000
+    style Success fill:#FF6B6B
+```
+
 ### Silver
 
 `LH_DRZ_SILVER` is the curated Delta Lake layer. The Silver transformation reads Bronze tables and the fleet mirror, then prepares stable tables for downstream modeling.
+
+![Silver Lakehouse structure](screenshots/Silver%20Lakehouse.png)
+
+![Silver Lakehouse pipeline run log](screenshots/Silver%20Lakehouse%20%28Pipeline%20Run%20Log%29.png)
 
 - Standardizes column names, data types, null tokens, and business values.
 - Removes duplicates using configured business keys and ordering rules.
@@ -118,6 +203,8 @@ The CRM pipeline applies the same metadata-oriented pattern to active CRM tables
 - Applies Delta `MERGE` and overwrite patterns for inserts, updates, and first-load scenarios.
 - Uses `metadata.silver_config`, `metadata.pipeline_control`, and `metadata.pipeline_run_log` for configuration and execution history.
 - Expands pipe-delimited add-on data into child records where required.
+
+![Silver configuration table](screenshots/Silver%20Config%20table.png)
 
 ### Gold
 
@@ -154,6 +241,9 @@ The Gold model is a rental-operations star schema. `FactRental` is the central b
 - Source metadata, pipeline control, run logs, failure records, and schema-change logs support traceability.
 - Business keys and transformation rules are managed through configuration tables.
 - Lakehouse and warehouse assets provide distinct processing and consumption boundaries.
+- Git integration enables version control and CI/CD collaboration:
+
+![Fabric Git integration](screenshots/Git%20Integration.png)
 
 ### Planned or Service-Managed
 
@@ -275,12 +365,3 @@ DriveZA-Holdings/
 - **Author:** Pacifique Nteta
 - **GitHub:** [DriveZA-Holdings](https://github.com/PacifiqueNteta/DriveZA-Holdings)
 - **LinkedIn:** [Pacifique Nteta](https://www.linkedin.com/in/pacifique-nteta)
-
-
-```mermaid
-flowchart LR
-  Pipeline["Collect → Analyze → Report → Gold"] --> Model["Review semantic model"]
-  Model --> App["FAR interactive workbench"]
-  App --> Estate["3D workspace estate"]
-  App --> Decisions["Findings and specialist analysis"]
-```
