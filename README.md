@@ -71,7 +71,13 @@ Snowflake and GitHub are deliberate project substitutes for the production-like 
 ### Bronze
 
 `LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
-For the data landing in the Bronze lakhouse `LH_DRZ_BRONZE`,
+For the data landing in the Bronze lakhouse `LH_DRZ_BRONZE`, two pipelines are used; the `PL_Bronze_Admin` to ingest the branches and staff files and the `PL_Bronze_CRM` to ingest CRM data.
+
+###### 1. PL_Bronze_CRM
+
+The CRM pipeline orchestrates data ingestion from SQL Server into the Fabric Bronze Lakehouse. It uses a metadata-driven approach, where the pipeline reads configuration details from a CSV table stored in the lakehouse files folder and uses that metadata to determine which activities to execute instead of hardcoding them for each task. This makes the process more reusable, maintainable, and easier to scale.
+
+![CRM configuration table](screenshots/crm%20config%20table.png)
 
 CRM processing uses source `updated_at` watermarks; branh and staff files use full-load ingestion. 
 
@@ -101,7 +107,7 @@ The Bronze control table records the status and row counts for CRM and file-base
 
 CRM table configuration defines the source table, destination, load type, watermark column, and active status used by the metadata-driven CRM pipeline:
 
-![CRM configuration table](screenshots/crm%20config%20table.png)
+
 
 The administration pipeline looks up active file definitions, filters them, and processes each file through a reusable `ForEach` activity:
 
