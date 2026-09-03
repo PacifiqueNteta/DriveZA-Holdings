@@ -73,13 +73,89 @@ Snowflake and GitHub are deliberate project substitutes for the production-like 
 `LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
 For the data landing in the Bronze lakhouse `LH_DRZ_BRONZE`, two pipelines are used; the `PL_Bronze_Admin` to ingest the branches and staff files and the `PL_Bronze_CRM` to ingest CRM data.
 
-###### 1. PL_Bronze_CRM
 
-The CRM pipeline orchestrates data ingestion from SQL Server into the Fabric Bronze Lakehouse. It uses a metadata-driven approach, where the pipeline reads configuration details from a CSV table stored in the lakehouse files folder and uses that metadata to determine which activities to execute instead of hardcoding them for each task. This makes the process more reusable, maintainable, and easier to scale.
+#### CRM Ingestion Pipeline (`PL_Bronze_CRM`)
+
+
+
+```mermaid
+flowchart TD
+    Title(["PL_Bronze_CRM"])
+    LKP["LKP_GetCRMConfig<br/>Read crm_config.csv"]
+    FLTR["FLTR_ActiveTables<br/>Filter is_active=1"]
+    ForEach["ForEach_CrmTable<br/>Iterate active tables"]
+    GetWM["NB_GetWatermark<br/>Get last updated_at<br/>Extract watermark value"]
+    Switch{SW_LoadType<br/>load_type?}
+    CPYIncr["CPY_Incremental<br/>Copy WHERE updated_at > watermark<br/>Append to Bronze"]
+    CPYFull["CPY_Full<br/>Copy entire table<br/>Upsert to Bronze"]
+    RecordInvalid["NB_RecordFailure_LoadType<br/>Log unrecognized load type"]
+    SuccessIncr{Success?}
+    SuccessFull{Success?}
+    UpdateWMIncr["NB_UpdateWatermark<br/>_IncrementalCPY<br/>Persist new watermark"]
+    FailIncr["NB_RecordFailure<br/>_IncrementalCPY<br/>Log failure details"]
+    UpdateWMFull["NB_UpdateWatermark<br/>_FullCPY<br/>Persist new watermark"]
+    FailFull["NB_RecordFailure<br/>_FullCPY<br/>Log failure details"]
+    Complete["Pipeline Complete<br/>Data ready in Bronze"]
+
+    LKP --> FLTR
+    FLTR --> ForEach
+    ForEach --> GetWM
+    GetWM --> Switch
+
+    Switch -->|incremental| CPYIncr
+    Switch -->|full| CPYFull
+    Switch -->|invalid| RecordInvalid
+
+    CPYIncr --> SuccessIncr
+    CPYFull --> SuccessFull
+
+    SuccessIncr -->|Yes| UpdateWMIncr
+    SuccessIncr -->|No| FailIncr
+
+    SuccessFull -->|Yes| UpdateWMFull
+    SuccessFull -->|No| FailFull
+
+    UpdateWMIncr --> Complete
+    FailIncr --> Complete
+    UpdateWMFull --> Complete
+    FailFull --> Complete
+    RecordInvalid --> Complete
+
+    style Title fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style LKP fill:#DDE7F2,stroke:#4B5563,stroke-width:1px,color:#111827
+    style FLTR fill:#E8E6D9,stroke:#4B5563,stroke-width:1px,color:#111827
+    style ForEach fill:#DDE7F2,stroke:#4B5563,stroke-width:1px,color:#111827
+    style GetWM fill:#E8E6D9,stroke:#4B5563,stroke-width:1px,color:#111827
+    style Switch fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style CPYIncr fill:#D9E2EC,stroke:#4B5563,stroke-width:1px,color:#111827
+    style CPYFull fill:#D9E2EC,stroke:#4B5563,stroke-width:1px,color:#111827
+    style RecordInvalid fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style SuccessIncr fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style SuccessFull fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style UpdateWMIncr fill:#DDE7F2,stroke:#4B5563,stroke-width:1px,color:#111827
+    style FailIncr fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style UpdateWMFull fill:#DDE7F2,stroke:#4B5563,stroke-width:1px,color:#111827
+    style FailFull fill:#E5E7EB,stroke:#4B5563,stroke-width:1px,color:#111827
+    style Complete fill:#DDE7F2,stroke:#4B5563,stroke-width:1px,color:#111827
+```
+
+The CRM pipeline extracts changed records from SQL Server into the Fabric Bronze Lakehouse using a metadata-driven, watermark-based incremental loading pattern. It reads configuration details from a CSV table stored in the lakehouse files folder and uses that metadata to determine which activities to execute instead of hardcoding them for each task. This makes the process more reusable, maintainable, and easier to scale.
+
+The CRM configuration table contains the following information:
+
+- `source_table_name`: The source table name in SQL Server.
+- `schema_name`: The source schema name. This is also used as the destination schema name in the Bronze Lakehouse.
+- `destination_table_name`: The target table name in the Bronze Lakehouse.
+- `load_type`: The ingestion strategy, either `incremental` or `full`.
+- `default_watermark`: The baseline watermark used for the initial load. This was set to start ingestion from 1 January 2020 to comply with the agreed requirement to load only the last five years of data.
+- `initial_load_column`: The column used when no prior watermark exists.
+- `incremental_column`: The column used to detect new or changed rows.
+- `is_active`: Indicates whether the table is enabled for processing. This allows a specific table or subset of tables to be activated while others remain inactive, avoiding unnecessary processing.
 
 ![CRM configuration table](screenshots/crm%20config%20table.png)
 
-CRM processing uses source `updated_at` watermarks; branh and staff files use full-load ingestion. 
+
+ 
 
 The Fabric workspace contains both the Bronze lakehouse and the mirrored fleet database used by the ingestion layer:
 
@@ -127,48 +203,7 @@ The CRM pipeline applies the same metadata-oriented pattern to active CRM tables
 
 ![Bronze record failure handling](screenshots/Bronze%20Record%20Failure.png)
 
-#### CRM Ingestion Pipeline
 
-The CRM pipeline extracts changed records from SQL Server using a metadata-driven, watermark-based incremental loading pattern:
-
-```mermaid
-flowchart TD
-    Start([Fabric Data Factory Scheduler]) --> LKP["LKP_GetCRMConfig<br/>Read crm_config.csv"]
-    LKP --> FLTR["FLTR_ActiveTables<br/>Filter is_active=1"]
-    FLTR --> ForEach["ForEach_CrmTable<br/>Iterate active tables"]
-    
-    ForEach --> GetWM["NB_GetWatermark<br/>Get last updated_at<br/>Extract watermark value"]
-    GetWM --> Switch{SW_LoadType<br/>load_type?}
-    
-    Switch -->|incremental| CPYIncr["CPY_Incremental<br/>Copy WHERE updated_at > watermark<br/>Append to Bronze"]
-    Switch -->|full| CPYFull["CPY_Full<br/>Copy entire table<br/>Upsert to Bronze"]
-    Switch -->|invalid| RecordInvalid["NB_RecordFailure_LoadType<br/>Log unrecognized load type"]
-    
-    CPYIncr --> SuccessIncr{Success?}
-    CPYFull --> SuccessFull{Success?}
-    
-    SuccessIncr -->|Yes| UpdateWMIncr["NB_UpdateWatermark<br/>_IncrementalCPY<br/>Persist new watermark"]
-    SuccessIncr -->|No| FailIncr["NB_RecordFailure<br/>_IncrementalCPY<br/>Log failure details"]
-    
-    SuccessFull -->|Yes| UpdateWMFull["NB_UpdateWatermark<br/>_FullCPY<br/>Persist new watermark"]
-    SuccessFull -->|No| FailFull["NB_RecordFailure<br/>_FullCPY<br/>Log failure details"]
-    
-    UpdateWMIncr --> Complete["Pipeline Complete<br/>Data ready in Bronze"]
-    FailIncr --> Complete
-    UpdateWMFull --> Complete
-    FailFull --> Complete
-    RecordInvalid --> Complete
-    
-    style Start fill:#4472C4
-    style LKP fill:#70AD47
-    style FLTR fill:#70AD47
-    style ForEach fill:#4472C4
-    style GetWM fill:#70AD47
-    style Switch fill:#FF6B6B
-    style CPYIncr fill:#FFC000
-    style CPYFull fill:#FFC000
-    style Complete fill:#5B9BD5
-```
 
 #### Admin File Ingestion Pipeline
 
