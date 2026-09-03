@@ -70,13 +70,38 @@ Snowflake and GitHub are deliberate project substitutes for the production-like 
 
 ### Bronze
 
-`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage. Fleet data is made available through the mirrored `DRIVEZA_FLEET` database.
+`LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage.
 For the data landing in the Bronze lakhouse `LH_DRZ_BRONZE`, two pipelines are used; the `PL_Bronze_Admin` to ingest the branches and staff files and the `PL_Bronze_CRM` to ingest CRM data.
 
+ Fleet data is made available through the mirrored `DRIVEZA_FLEET` database for direct reference.
+
+
+![Mirrored Database in workspace](screenshots/Mirrored%20Database%20Availed%20in%20the%20Workspace.png)
+`DRIVEZA_FLEET` mirrored database available in the Fabric workspace for fleet data access.
+
+![Mirrored Database detail](screenshots/Mirrored%20Database.png)
+Mirrored database details, including its connection and configuration information.
+
+![Bronze storage assets](screenshots/Bronze%20Storage.png)
+Bronze storage assets, including the lakehouse and mirrored database used by the ingestion layer.
 
 #### CRM Ingestion Pipeline (`PL_Bronze_CRM`)
 
+The CRM pipeline extracts changed records from SQL Server into the Fabric Bronze Lakehouse using a metadata-driven, watermark-based incremental loading pattern. It reads configuration details from a CSV table stored in the lakehouse files folder and uses that metadata to determine which activities to execute instead of hardcoding them for each task. This makes the process more reusable, maintainable, and easier to scale.
 
+The CRM configuration table contains the following information:
+
+- `source_table_name`: The source table name in SQL Server.
+- `schema_name`: The source schema name. This is also used as the destination schema name in the Bronze Lakehouse.
+- `destination_table_name`: The target table name in the Bronze Lakehouse.
+- `load_type`: The ingestion strategy, either `incremental` or `full`.
+- `default_watermark`: The baseline watermark used for the initial load. This was set to start ingestion from 1 January 2020 to comply with the agreed requirement to load only the last five years of data.
+- `initial_load_column`: The column used when no prior watermark exists.
+- `incremental_column`: The column used to detect new or changed rows.
+- `is_active`: Indicates whether the table is enabled for processing. This allows a specific table or subset of tables to be activated while others remain inactive, avoiding unnecessary processing.
+
+![CRM configuration table](screenshots/crm%20config%20table.png)
+CRM configuration table that controls active status, source and destination names, load type, and watermark settings.
 
 ```mermaid
 flowchart TD
@@ -139,96 +164,63 @@ flowchart TD
     style Complete fill:#DDE7F2,stroke:#4B5563,stroke-width:1px,color:#111827
 ```
 
-The CRM pipeline extracts changed records from SQL Server into the Fabric Bronze Lakehouse using a metadata-driven, watermark-based incremental loading pattern. It reads configuration details from a CSV table stored in the lakehouse files folder and uses that metadata to determine which activities to execute instead of hardcoding them for each task. This makes the process more reusable, maintainable, and easier to scale.
+The `PL_Bronze_CRM` pipeline uses metadata to process CRM tables without hardcoding each source table. The first activity, `LKP_GetCRMConfig` (**Lookup** activity), reads `crm_config.csv` from the `Configurations` folder in `LH_DRZ_BRONZE`. It passes each table's source and destination names, load type, watermark settings, and `is_active` flag to the next activity. `FLTR_ActiveTables` (**Filter** activity) keeps only definitions where `is_active = 1`, preventing disabled tables from being processed. `ForEach_CrmTable` (**ForEach** activity) then iterates over the filtered configuration and runs the ingestion logic for each active table. Because the loop is configured with a batch count of one, tables are processed one at a time, which limits concurrent writes and makes operational tracing easier.
+For example, if the watermark is `2026-08-01 00:00:00`, a row with `updated_at = 2026-08-02 10:30:00` is loaded because it is greater than the watermark, while a row with `updated_at = 2026-07-31 15:00:00` is skipped. After a successful load, the latest loaded `updated_at` becomes the new watermark for the next run.
 
-The CRM configuration table contains the following information:
-
-- `source_table_name`: The source table name in SQL Server.
-- `schema_name`: The source schema name. This is also used as the destination schema name in the Bronze Lakehouse.
-- `destination_table_name`: The target table name in the Bronze Lakehouse.
-- `load_type`: The ingestion strategy, either `incremental` or `full`.
-- `default_watermark`: The baseline watermark used for the initial load. This was set to start ingestion from 1 January 2020 to comply with the agreed requirement to load only the last five years of data.
-- `initial_load_column`: The column used when no prior watermark exists.
-- `incremental_column`: The column used to detect new or changed rows.
-- `is_active`: Indicates whether the table is enabled for processing. This allows a specific table or subset of tables to be activated while others remain inactive, avoiding unnecessary processing.
-
-![CRM configuration table](screenshots/crm%20config%20table.png)
+For the full-load case, `CPY_Full` (**Copy** activity) reads the complete SQL Server table and upserts it into the same dynamic Bronze destination using the configured `upsert_key`. Upsert is used instead of overwrite so the load can update existing records and insert new ones while preserving the table and its history when the source is reprocessed. This makes full-load reruns safer and idempotent, and avoids the unnecessary disruption of dropping and recreating the destination table. On success, `NB_UpdateWatermark_FullCPY` (**Notebook** activity) records the successful load in `metadata.pipeline_control` and `metadata.pipeline_run_log`; on failure, `NB_RecordFailure_FullCPY` (**Notebook** activity) records the failed load and error in those same control tables. The Switch activity's default branch invokes `NB_RecordFailure_LoadType` (**Notebook** activity) to log unsupported `load_type` values instead of allowing an invalid configuration to proceed. Copy retries are configured in the pipeline, and the failure notebooks ensure that unsuccessful loads do not advance the incremental watermark, providing the traceability needed for troubleshooting and safe reruns.
 
 
- 
-
-The Fabric workspace contains both the Bronze lakehouse and the mirrored fleet database used by the ingestion layer:
-
-![Bronze storage assets](screenshots/Bronze%20Storage.png)
-![Bronze lakehouse structure](screenshots/Bronze%20Lakehouse.png)
-
-- Ingestion metadata records timestamps, source systems, source files, and load context.
-- Schema-evolution checks compare incoming CRM structures with existing Bronze tables.
-- Data-quality notebooks validate expected objects, row counts, and null patterns.
-- Pipeline control, run-log, and failure records provide operational traceability.
-
-The mirrored fleet database is connected to the workspace and made available for direct reference:
-
-![Mirrored Database in workspace](screenshots/Mirrored%20Database%20Availed%20in%20the%20Workspace.png)
-
-![Mirrored Database detail](screenshots/Mirrored%20Database.png)
-
-The administration file configuration is metadata-driven. Active file definitions identify the source system, file name, destination schema and table, load type, and delimiter:
-
-![Bronze configuration table](screenshots/Bronze%20Config%20table.png)
-
-The Bronze control table records the status and row counts for CRM and file-based loads, providing an operational view of the latest ingestion state:
-
-![Bronze pipeline control table](screenshots/Pipeline%20Control.png)
-
-CRM table configuration defines the source table, destination, load type, watermark column, and active status used by the metadata-driven CRM pipeline:
-
-
-
-The administration pipeline looks up active file definitions, filters them, and processes each file through a reusable `ForEach` activity:
-
-![Bronze administration pipeline](screenshots/PL_Bronze_Admin.png)
-
-![Bronze administration ForEach activity](screenshots/PL_Bronze_Admin%28Inside%20ForEach%29.png)
-
-The CRM pipeline applies the same metadata-oriented pattern to active CRM tables, then routes each table according to its load type:
+The Copy activities and selected notebook activities also use retry policies to handle temporary connection or service failures. A retry can allow a load to recover without manual intervention; however, when all attempts fail, the relevant `NB_RecordFailure` notebook records the failure for investigation.
 
 ![Bronze CRM pipeline](screenshots/PL_Bronze_CRM.png)
+Complete `PL_Bronze_CRM` pipeline, including metadata lookup, active-table filtering, table iteration, watermark retrieval, load-type routing, and the incremental and full-load branches.
 
 ![Bronze CRM ForEach activity](screenshots/PL_Bronze_CRM%28Inside%20For%20Each%29.png)
 
+Activities inside `ForEach_CrmTable`, where each active CRM table is processed through the watermark notebook and then passed to the load-type switch.
+
 ![Bronze CRM load-type switch](screenshots/PL_Bronze_CRM%28Inside%20Switch%29.png)
+
+`SW_LoadType` routing a table to the incremental Copy activity, the full-load Copy activity, or the default failure branch for an unsupported load type.
 
 ![Bronze CRM retry mechanism](screenshots/Bronze%20CRM%20retry%20.png)
 
+The retry mechanism: a Copy activity failed on its first attempt but succeeded on a subsequent retry. This helps the pipeline recover from transient failures without immediately recording the load as permanently failed.
+
 ![Bronze record failure handling](screenshots/Bronze%20Record%20Failure.png)
 
+Copy activity that failed after the available attempts were exhausted. The corresponding `NB_RecordFailure` notebook captured the failure details and logged them in the control and run-log tables for investigation.
+
+**Pipeline Control**
+
+The Bronze control table records the status and row counts for CRM loads, providing an operational view of each table's latest execution state:
+
+![Bronze pipeline control table](screenshots/Pipeline%20Control.png)
+The control records capture load status, row counts, watermarks, and execution details written by the CRM notebooks.
+ 
+#### Admin File Ingestion Pipeline (`PL_Bronze_Admin`)
+
+The Admin pipeline uses the same metadata-driven pattern as the CRM pipeline to load configured files into the Bronze lakehouse. `LKP_AdminConfig` (**Lookup** activity) reads `admin_files_config.csv`, and `FLRT_ActivesFiles` (**Filter** activity) keeps only records where `is_active = 1`. `ForEach_AdminFiles` (**ForEach** activity) processes each active file, while `SW_SourceSystem` (**Switch** activity) selects the source-specific branch. `CPY_Github_Hr` and `CPY_GitHub_Admin` (**Copy** activities) retrieve the HR and administration files from GitHub and copy them in the file section of the lakehouse, and `NB_Table_Loading_Hr` and `NB_Table_Loading_Admin` (**Notebook** activities) load them into their configured Bronze tables. This keeps file names, destinations, delimiters, and source handling in configuration rather than pipeline code.
+
+![Bronze configuration table](screenshots/Bronze%20Config%20table.png)
+The administration configuration defines the active files, source systems, destinations, delimiters, and load settings consumed by the pipeline.
+
+![Bronze administration pipeline](screenshots/PL_Bronze_Admin.png)
+The full Admin pipeline shows configuration lookup, active-file filtering, iteration, source-system routing, file landing, and table loading.
+
+![Bronze administration ForEach activity](screenshots/PL_Bronze_Admin%28Inside%20ForEach%29.png)
+The `ForEach_AdminFiles` scope applies the configured file-processing steps to each active HR or administration definition.
+
+#### Bronze Data Quality Validation
+
+After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (**TridentNotebook** activity) discovers the available CRM, Admin, and mirrored fleet tables and validates their accessibility, row counts, column counts, duplicate keys, and null keys. Each result is appended to `metadata.data_quality`, providing a consolidated record of Bronze data quality for monitoring and investigation.
 
 
-#### Admin File Ingestion Pipeline
 
-The Admin pipeline processes GitHub-hosted CSV files (branches and staff) using a metadata-driven full-load pattern:
 
-```mermaid
-flowchart TD
-    Start([Fabric Data Factory Scheduler]) --> AdminConfig["Load Admin Config<br/>Active file definitions"]
-    AdminConfig --> AdminFilter["Filter Active Files<br/>branches.csv, staff.csv"]
-    AdminFilter --> ForEach["ForEach File Activity<br/>Reusable processing"]
-    ForEach --> Fetch["Fetch from GitHub HTTP<br/>Download CSV"]
-    Fetch --> Parse["Parse CSV<br/>Map to schema"]
-    Parse --> LoadAdmin["Load to Bronze<br/>Full-load pattern"]
-    LoadAdmin --> DQCheck["Data Quality Check<br/>Row counts, nulls, keys"]
-    DQCheck --> Success{Quality<br/>Passed?}
-    Success -->|Yes| LogRun["Log Pipeline Run<br/>Metadata + Control"]
-    Success -->|No| RecordFailure["Record Failure<br/>Retry on next run"]
-    RecordFailure --> LogRun
-    LogRun --> Bronze["Admin Data Ready<br/>LH_DRZ_BRONZE"]
-    
-    style Start fill:#4472C4
-    style Fetch fill:#70AD47
-    style Bronze fill:#FFC000
-    style Success fill:#FF6B6B
-```
+
+
+
 
 ### Silver
 
