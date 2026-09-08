@@ -242,6 +242,8 @@ For each configured active table, `NB_Silver_Transform` applies the following se
 The Silver lakehouse contains the curated tables produced from CRM, administration, and fleet sources.
 
 ![Silver Lakehouse pipeline run log](screenshots/Silver%20Lakehouse%20%28Pipeline%20Run%20Log%29.png)
+
+
 The Silver pipeline run log shows the result of the transformation, including table-level status, row counts, watermarks, and execution duration.
 
 `PL_SolverBronze_QualityCheck` runs `NB_Bronze_QualityCheck` and, after it succeeds, `NB_Silver_QualityCheck` as **Notebook** activities. Together they validate source and Silver table accessibility, row and column counts, duplicate keys, and null keys, appending the results to `metadata.data_quality`.
