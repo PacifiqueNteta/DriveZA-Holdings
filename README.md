@@ -237,10 +237,16 @@ For each configured active table, `NB_Silver_Transform` applies the following se
 6. Creates the Silver schema and table when needed. Existing tables are updated with Delta `MERGE`: rows with matching business keys are updated only when their hash changes, while new keys are inserted. Empty incremental batches skip the write.
 7. Writes per-table metrics to `metadata.pipeline_control` and appends execution details, including rows read, rows written, inserts, updates, errors, and duration, to `metadata.pipeline_run_log`. Missing configuration, inactive tables, and processing errors are isolated per table and logged without stopping the remaining tables; configured failure alerts are available but disabled by default.
 
-![Silver Lakehouse structure](screenshots/Silver%20Lakehouse.png)
+![Silver Lakehouse structure](screenshots/Silver%20LakeHouse.png)
+
+
+
+
 The Silver lakehouse contains the curated tables produced from CRM, administration, and fleet sources.
 
 ![Silver Lakehouse pipeline run log](screenshots/Silver%20Lakehouse%20%28Pipeline%20Run%20Log%29.png)
+
+
 The Silver pipeline run log shows the result of the transformation, including table-level status, row counts, watermarks, and execution duration.
 
 `PL_SolverBronze_QualityCheck` runs `NB_Bronze_QualityCheck` and, after it succeeds, `NB_Silver_QualityCheck` as **TridentNotebook** activities. Together they validate source and Silver table accessibility, row and column counts, duplicate keys, and null keys, appending the results to `metadata.data_quality`.
