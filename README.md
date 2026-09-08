@@ -213,39 +213,40 @@ The `ForEach_AdminFiles` scope applies the configured file-processing steps to e
 
 #### Bronze Data Quality Validation
 
-After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (**TridentNotebook** activity) discovers the available CRM, Admin, and mirrored fleet tables and validates their accessibility, row counts, column counts, duplicate keys, and null keys. Each result is appended to `metadata.data_quality`, providing a consolidated record of Bronze data quality for monitoring and investigation.
+After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (**Notebook** activity) discovers the available CRM, Admin, and mirrored fleet tables and validates their accessibility, row counts, column counts, duplicate keys, and null keys. Each result is appended to `metadata.data_quality`, providing a consolidated record of Bronze data quality for monitoring and investigation.
 
 
 ### Silver
 
-`LH_DRZ_SILVER` is the curated Delta Lake layer. The Silver transformation reads Bronze tables and the fleet mirror, then prepares stable tables for downstream modeling.
+`LH_DRZ_SILVER` is the curated Delta Lake layer. The Silver transformation reads Bronze tables and the fleet mirror, then prepares stable tables for downstream modeling. It is also meta-data driven.
 
 ![Silver configuration table](screenshots/Silver%20Config%20table.png)
-The Silver configuration table defines the business key, watermark column, and active status used to control each table's transformation.
+The Silver configuration table defines the business key, watermark column, and active status used to control each table's transformation. The is active also helps in cases when a new table was added to bronze and we only want to process it only so we set all other tables inactive and keep it only active.
 
-`NB_Silver_MetaSetup` (**TridentNotebook** activity) creates the Silver metadata schema and its Delta tables, including `metadata.pipeline_control`, `metadata.pipeline_run_log`, `metadata.silver_config`, `metadata.data_quality`, and `metadata.table_maintenance`. It seeds the table configuration and value-normalization map, and creates the `metadata.data_quality_summary` materialized lake view for consolidated quality results.
+`NB_Silver_MetaSetup` (**Notebook** activity) creates the Silver metadata schema and its Delta tables, including `metadata.pipeline_control`, `metadata.pipeline_run_log`, `metadata.silver_config`, `metadata.data_quality`, and `metadata.table_maintenance`. It seeds the table configuration and value-normalization map, and creates the `metadata.data_quality_summary` materialized lake view for consolidated quality results.
 
-Silver processing is orchestrated by `PL_Silver_Transform`, whose **TridentNotebook** activity runs `NB_Silver_Transform`. The notebook first discovers CRM and Admin tables in `LH_DRZ_BRONZE` and fleet tables in the `DRIVEZA_FLEET` mirror. It then reads the last successful watermark from `metadata.pipeline_control`, table rules from `metadata.silver_config`, and configured value corrections from `metadata.value_normalization_map`.
+Silver processing is orchestrated by `PL_Silver_Transform`, whose **Notebook** activity runs `NB_Silver_Transform`. The notebook first discovers CRM and Admin tables in `LH_DRZ_BRONZE` and fleet tables in the `DRIVEZA_FLEET` mirror. It then reads the last successful watermark from `metadata.pipeline_control`, table rules from `metadata.silver_config`, and configured value corrections from `metadata.value_normalization_map`.
 
 For each configured active table, `NB_Silver_Transform` applies the following sequence:
 
 1. Filters the source using the configured watermark when a previous successful watermark exists; otherwise, performs the initial full read.
-2. Drops technical columns and standardizes column names, trims string values, and converts configured null tokens to `NULL`.
-3. Normalizes phone-number fields and applies configuration-driven value corrections, such as country-name fixes.
+2. Drops technical columns like and standardizes column names, trims string values(extra spaces before or after the text), and converts configured null tokens to `NULL`(somme values are displayed as null but in reality they are strings and not `NULL` so it is important to set them as true `NULLs`).
+3. Normalizes phone-number fields and applies configuration-driven value corrections, such as country-name fixes. While analyzing the silver tables, for 
 4. Validates that the configured business keys and watermark column exist, removes records with null business keys, and deduplicates records with a window ordered by the watermark column.
 5. Adds `silver_load_timestamp`, `record_created_at`, and `record_updated_at`, then calculates an `xxhash64` `record_hash` for change detection.
 6. Creates the Silver schema and table when needed. Existing tables are updated with Delta `MERGE`: rows with matching business keys are updated only when their hash changes, while new keys are inserted. Empty incremental batches skip the write.
 7. Writes per-table metrics to `metadata.pipeline_control` and appends execution details, including rows read, rows written, inserts, updates, errors, and duration, to `metadata.pipeline_run_log`. Missing configuration, inactive tables, and processing errors are isolated per table and logged without stopping the remaining tables; configured failure alerts are available but disabled by default.
 
 ![Silver Lakehouse structure](screenshots/Silver%20Lakehouse.png)
+
 The Silver lakehouse contains the curated tables produced from CRM, administration, and fleet sources.
 
 ![Silver Lakehouse pipeline run log](screenshots/Silver%20Lakehouse%20%28Pipeline%20Run%20Log%29.png)
 The Silver pipeline run log shows the result of the transformation, including table-level status, row counts, watermarks, and execution duration.
 
-`PL_SolverBronze_QualityCheck` runs `NB_Bronze_QualityCheck` and, after it succeeds, `NB_Silver_QualityCheck` as **TridentNotebook** activities. Together they validate source and Silver table accessibility, row and column counts, duplicate keys, and null keys, appending the results to `metadata.data_quality`.
+`PL_SolverBronze_QualityCheck` runs `NB_Bronze_QualityCheck` and, after it succeeds, `NB_Silver_QualityCheck` as **Notebook** activities. Together they validate source and Silver table accessibility, row and column counts, duplicate keys, and null keys, appending the results to `metadata.data_quality`.
 
-`PL_SilverBronze_Optimizer` runs `NB_SilverBronze_Optimiser` as a **TridentNotebook** activity. The optimizer records maintenance results in `LH_DRZ_SILVER.metadata.table_maintenance`, skips mirrored tables because their storage is managed by Fabric mirroring, and skips tables below the configured file-count threshold. Eligible Delta tables receive `OPTIMIZE`, optionally with configured `ZORDER`, followed by `VACUUM` using the default seven-day retention unless an approved table-specific override exists.
+`PL_SilverBronze_Optimizer` runs `NB_SilverBronze_Optimiser` as a **Notebook** activity. The optimizer records maintenance results in `LH_DRZ_SILVER.metadata.table_maintenance`, skips mirrored tables because their storage is managed by Fabric mirroring, and skips tables below the configured file-count threshold. Eligible Delta tables receive `OPTIMIZE`, optionally with configured `ZORDER`, followed by `VACUUM` using the default seven-day retention unless an approved table-specific override exists.
 
 ### Gold
 
