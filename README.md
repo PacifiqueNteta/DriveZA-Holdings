@@ -231,27 +231,44 @@ For each configured active table, `NB_Silver_Transform` applies the following se
 
 1. Filters the source using the configured watermark when a previous successful watermark exists; otherwise, performs the initial full read.
 2. Drops technical columns and standardizes column names, trims string values, and converts configured null tokens to `NULL`.
-3. Normalizes phone-number fields and applies configuration-driven value corrections, such as country-name fixes.
+3. Normalizes phone-number values and applies configuration-driven value corrections, such as country-name fixes. While reviewing CRM customer data in Fabric, the `customers.country` field was found to contain inconsistent values such as `Germa` instead of `Germany` and `French` instead of `France`, even though `customers.nationality` already contained the correct values. This issue was traced back to source data entry errors and handled through a value-normalization lookup table. During this step, each invalid value is matched against the normalization map and replaced with the approved standard before the row is written to the Silver layer. Any future data-quality issue discovered in source is documented and added to the normalization map so the fix is consistently applied during Silver transformations.
+
+![CRM customer source country values](screenshots/crm%20customers%20country(source).png)
+The source CRM `customers.country` field included inconsistent values such as `Germa` and `French`, which were identified before the Silver correction step.
+
+![CRM customer source distinct country values](screenshots/crm%20customers%20distinct%20country(from%20source).png)
+The distinct values from the source `customers.country` field revealed the data-quality issue and confirmed the need for a controlled normalization map.
+
+![CRM customer source nationality values](screenshots/crm%20customers%20nationality(source).png)
+The source `customers.nationality` field provided the trusted reference values that were used to standardize the incorrect country entries.
+
 4. Validates that the configured business keys and watermark column exist, removes records with null business keys, and deduplicates records with a window ordered by the watermark column.
 5. Adds `silver_load_timestamp`, `record_created_at`, and `record_updated_at`, then calculates an `xxhash64` `record_hash` for change detection.
 6. Creates the Silver schema and table when needed. Existing tables are updated with Delta `MERGE`: rows with matching business keys are updated only when their hash changes, while new keys are inserted. Empty incremental batches skip the write.
 7. Writes per-table metrics to `metadata.pipeline_control` and appends execution details, including rows read, rows written, inserts, updates, errors, and duration, to `metadata.pipeline_run_log`. Missing configuration, inactive tables, and processing errors are isolated per table and logged without stopping the remaining tables; configured failure alerts are available but disabled by default.
+
+
+
+
+
 
 ![Silver Lakehouse structure](screenshots/Silver%20LakeHouse.png)
 
 
 
 
-The Silver lakehouse contains the curated tables produced from CRM, administration, and fleet sources.
+The Silver lakehouse after silver transform containing the curated tables produced from CRM, administration, and fleet sources.
 
 ![Silver Lakehouse pipeline run log](screenshots/Silver%20Lakehouse%20%28Pipeline%20Run%20Log%29.png)
 
 
-The Silver pipeline run log shows the result of the transformation, including table-level status, row counts, watermarks, and execution duration.
+The Silver pipeline run log showing the result of the transformation, including table-level status, row counts, watermarks, and execution duration.
 
-`PL_SolverBronze_QualityCheck` runs `NB_Bronze_QualityCheck` and, after it succeeds, `NB_Silver_QualityCheck` as **TridentNotebook** activities. Together they validate source and Silver table accessibility, row and column counts, duplicate keys, and null keys, appending the results to `metadata.data_quality`.
+#### Quality Check and Table Optimization Pipelines
 
-`PL_SilverBronze_Optimizer` runs `NB_SilverBronze_Optimiser` as a **TridentNotebook** activity. The optimizer records maintenance results in `LH_DRZ_SILVER.metadata.table_maintenance`, skips mirrored tables because their storage is managed by Fabric mirroring, and skips tables below the configured file-count threshold. Eligible Delta tables receive `OPTIMIZE`, optionally with configured `ZORDER`, followed by `VACUUM` using the default seven-day retention unless an approved table-specific override exists.
+Once the Silver layer has been populated, a dedicated quality pipeline, `PL_SolverBronze_QualityCheck`, can be run to validate the quality of the incoming and curated data. `PL_SolverBronze_QualityCheck` executes `NB_Bronze_QualityCheck` first and then `NB_Silver_QualityCheck`. Together, these notebooks verify source and Silver table accessibility, row and column counts, duplicate keys, and null-key patterns, and append the results to `metadata.data_quality`.
+
+For maintenance and storage optimization, the `PL_SilverBronze_Optimizer` pipeline can also be run independently. It executes `NB_SilverBronze_Optimiser`, which records optimization results in `LH_DRZ_SILVER.metadata.table_maintenance`, skips mirrored tables because their storage is managed by Fabric mirroring, and ignores tables below the configured file-count threshold. Eligible Delta tables receive `OPTIMIZE`, optionally with configured `ZORDER`, and then `VACUUM` using the default seven-day retention unless a table-specific override has been approved.
 
 ### Gold
 
