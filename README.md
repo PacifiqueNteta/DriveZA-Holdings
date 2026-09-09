@@ -32,7 +32,7 @@ Fabric Data Factory orchestrates ingestion and transformation, OneLake stores De
 
 - The rental platform, Bluebird Auto Rental Systems, manages bookings, customers, payments, and promotions on an on-premises SQL Server.
 - Fleet operations use MiX by Powerfleet for vehicle tracking, incident logging, and maintenance scheduling. Its data lands in an Azure SQL Server managed by the fleet team.
-- HR records are mastered in PaySpace and periodically exported as spreadsheets, while Branch Operations maintains branch managers and fleet capacity in a separate spreadsheet.1wssfh.0o5
+- HR records are mastered in PaySpace and periodically exported as spreadsheets, while Branch Operations maintains branch managers and fleet capacity in a separate spreadsheet.
 - This project uses SQL Server for the CRM, Snowflake to simulate the fleet team's Azure SQL Server and demonstrate a mirrored/shared external database pattern, and GitHub-hosted CSV files to simulate the HR and branch spreadsheet exports.
 - The sources use different schemas, keys, delivery mechanisms, and refresh frequencies.
 - Analysts must reconcile rental, payment, customer, vehicle, branch, employee, maintenance, and incident data before producing trusted metrics.
@@ -71,9 +71,9 @@ Snowflake and GitHub are deliberate project substitutes for the production-like 
 ### Bronze
 
 `LH_DRZ_BRONZE` is the raw landing and observability layer. It preserves source structure while adding ingestion context for replay, reconciliation, and lineage.
-For the data landing in the Bronze lakhouse `LH_DRZ_BRONZE`, two pipelines are used; the `PL_Bronze_Admin` to ingest the branches and staff files and the `PL_Bronze_CRM` to ingest CRM data.
+Two pipelines load data into the Bronze lakehouse `LH_DRZ_BRONZE`: `PL_Bronze_Admin` ingests the branch and staff files, while `PL_Bronze_CRM` ingests CRM data.
 
- Fleet data is made available through the mirrored `DRIVEZA_FLEET` database for direct reference.
+Fleet data is made available through the mirrored `DRIVEZA_FLEET` database for direct reference.
 
 
 ![Mirrored Database in workspace](screenshots/Mirrored%20Database%20Availed%20in%20the%20Workspace.png)
@@ -84,6 +84,8 @@ Mirrored database details, including its connection and configuration informatio
 
 ![Bronze storage assets](screenshots/Bronze%20Storage.png)
 Bronze storage assets, including the lakehouse and mirrored database used by the ingestion layer.
+
+Before pipeline execution begins, the `NB_Bronze_Meta_Setup` notebook is run once to create the foundational `metadata` schema and the Bronze control tables used throughout ingestion and monitoring. This setup establishes the operational metadata layer for tracking source status, execution logs, and data-quality checks. The key objects created include `metadata.pipeline_control`, `metadata.pipeline_run_log`, and `metadata.data_quality`, along with the supporting view used for summarised quality reporting. This ensures each ingestion run has a consistent place to store watermarks, run outcomes, row counts, and operational diagnostics.
 
 #### CRM Ingestion Pipeline (`PL_Bronze_CRM`)
 
@@ -200,7 +202,7 @@ The control records capture load status, row counts, watermarks, and execution d
  
 #### Admin File Ingestion Pipeline (`PL_Bronze_Admin`)
 
-The Admin pipeline uses the same metadata-driven pattern as the CRM pipeline to load configured files into the Bronze lakehouse. `LKP_AdminConfig` (**Lookup** activity) reads `admin_files_config.csv`, and `FLRT_ActivesFiles` (**Filter** activity) keeps only records where `is_active = 1`. `ForEach_AdminFiles` (**ForEach** activity) processes each active file, while `SW_SourceSystem` (**Switch** activity) selects the source-specific branch. `CPY_Github_Hr` and `CPY_GitHub_Admin` (**Copy** activities) retrieve the HR and administration files from GitHub and copy them in the file section of the lakehouse, and `NB_Table_Loading_Hr` and `NB_Table_Loading_Admin` (**Notebook** activities) load them into their configured Bronze tables. This keeps file names, destinations, delimiters, and source handling in configuration rather than pipeline code.
+The Admin pipeline uses the same metadata-driven pattern as the CRM pipeline to load configured files into the Bronze lakehouse. `LKP_AdminConfig` (**Lookup** activity) reads `admin_files_config.csv`, and `FLRT_ActivesFiles` (**Filter** activity) keeps only records where `is_active = 1`. `ForEach_AdminFiles` (**ForEach** activity) processes each active file, while `SW_SourceSystem` (**Switch** activity) selects the source-specific branch. `CPY_Github_Hr` and `CPY_GitHub_Admin` (**Copy** activities) retrieve the HR and administration files from GitHub and copy them into the lakehouse Files section, while `NB_Table_Loading_Hr` and `NB_Table_Loading_Admin` (**Notebook** activities) load them into their configured Bronze tables. This keeps file names, destinations, delimiters, and source handling in configuration rather than pipeline code.
 
 ![Bronze configuration table](screenshots/Bronze%20Config%20table.png)
 The administration configuration defines the active files, source systems, destinations, delimiters, and load settings consumed by the pipeline.
@@ -223,9 +225,9 @@ After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (*
 ![Silver configuration table](screenshots/Silver%20Config%20table.png)
 The Silver configuration table defines the business key, watermark column, and active status used to control each table's transformation.
 
-`NB_Silver_MetaSetup` (**TridentNotebook** activity) creates the Silver metadata schema and its Delta tables, including `metadata.pipeline_control`, `metadata.pipeline_run_log`, `metadata.silver_config`, `metadata.data_quality`, and `metadata.table_maintenance`. It seeds the table configuration and value-normalization map, and creates the `metadata.data_quality_summary` materialized lake view for consolidated quality results.
+`NB_Silver_MetaSetup` (**Notebook** activity) creates the Silver metadata schema and its Delta tables, including `metadata.pipeline_control`, `metadata.pipeline_run_log`, `metadata.silver_config`, `metadata.data_quality`, and `metadata.table_maintenance`. It seeds the table configuration and value-normalization map, and creates the `metadata.data_quality_summary` materialized lake view for consolidated quality results. This is a one-time activity.
 
-Silver processing is orchestrated by `PL_Silver_Transform`, whose **TridentNotebook** activity runs `NB_Silver_Transform`. The notebook first discovers CRM and Admin tables in `LH_DRZ_BRONZE` and fleet tables in the `DRIVEZA_FLEET` mirror. It then reads the last successful watermark from `metadata.pipeline_control`, table rules from `metadata.silver_config`, and configured value corrections from `metadata.value_normalization_map`.
+Silver processing is orchestrated by `PL_Silver_Transform`, whose **Notebook** activity runs `NB_Silver_Transform`. The notebook first discovers CRM and Admin tables in `LH_DRZ_BRONZE` and fleet tables in the `DRIVEZA_FLEET` mirror. It then reads the last successful watermark from `metadata.pipeline_control`, table rules from `metadata.silver_config`, and configured value corrections from `metadata.value_normalization_map`.
 
 For each configured active table, `NB_Silver_Transform` applies the following sequence:
 
@@ -272,51 +274,81 @@ For maintenance and storage optimization, the `PL_SilverBronze_Optimizer` pipeli
 
 ### Gold
 
-`WH_DRZ_GOLD` is the reporting and analytics layer. Warehouse stored procedures load a star schema from Silver, separating reusable dimensions from measurable business events.
+The Gold layer contains the warehouse `WH_DRZ_GOLD` and the semantic model `DRZ_Reporting`, which are used to prepare the reporting-ready analytics layer. The design follows a star-schema pattern optimized for self-service reporting and analytical consumption. Warehouse stored procedures read from Silver and build the dimension and fact tables that power the reporting layer.
 
-The Gold pipeline coordinates the final warehouse transformations and prepares the reporting-ready model:
+Before the Gold warehouse load runs, `PL_Gold_DimDate` creates and loads the `DimDate` table. This date dimension is generated through the `NB_DateTable_Generation` notebook and includes attributes such as `FiscalYear`, `IsWeekend`, and `IsSAPublicHoliday`, which are essential for time-based analysis and operational insight. The date range starts on `2018-01-01` and ends on `2035-12-31`, and the resulting table is loaded into the Reporting schema in the Gold warehouse.
+
+The Gold pipeline `PL_Gold_Transformation` orchestrates the final warehouse transformations by creating the dimensions and fact tables and establishing the relationships between them using surrogate keys rather than the source business keys. This approach preserves stable keys for reporting while supporting incremental loads and maintaining a cleaner analytical model. The warehouse contains six dimensions: `DimDate`, `DimCustomer`, `DimBranch`, `DimVehicle`, `DimEmployees`, and `DimPromotion`, and four facts: `FactRental`, `FactPayment`, `FactMaintenance`, and `FactIncident`. Customer history is tracked with effective and expiry dates to support accurate current-state reporting and historical analysis.
+
+Surrogate keys are used in the Gold warehouse instead of the original source business keys because the business keys can change over time, may not be unique across historical versions, and may not be ideal for stable reporting joins. For example, a customer or vehicle may have a natural key that changes, the same business record may appear with different source values across updates, or some source entities are not guaranteed to be unique in every operational context. A surrogate key gives each dimension row a single internal identity that remains consistent for reporting, supports slowly changing dimensions, and avoids exposing unstable operational identifiers in the star schema. This makes joins simpler, improves relationship integrity across fact and dimension tables, and allows the warehouse to manage historical changes without corrupting the reporting model.
 
 ![Gold transformation pipeline](screenshots/gold%20pipeline.png)
+The Gold transformation pipeline orchestrates the warehouse build by executing the stored procedures that load the reporting dimensions and facts and prepare the final analytical model.
 
-The model contains six dimensions: `DimDate`, `DimCustomer`, `DimBranch`, `DimVehicle`, `DimEmployees`, and `DimPromotion`. It contains four facts: `FactRental`, `FactPayment`, `FactMaintenance`, and `FactIncident`. Customer history uses current-record tracking with effective and expiry dates, providing stable relationships for operational and commercial KPIs.
-
-## Key Engineering Features
-
-- **Incremental watermark loading:** Source `updated_at` values limit CRM extraction to changed records and persist repeatable pipeline state.
-- **Metadata-driven processing:** Watermark, control, run-log, and Silver configuration tables centralize business keys, active flags, execution state, and transformation behavior.
-- **Schema evolution:** Incoming structures are compared with existing Bronze schemas, with compatible additions recorded before transformation continues.
-- **Delta Lake patterns:** Silver uses durable Delta tables for transactional writes, schema management, change detection, and replayable processing.
-- **Merge and upsert logic:** Business keys and record hashes distinguish inserts, updates, and unchanged records while avoiding unnecessary rewrites.
-- **Data quality checks:** Dedicated notebooks validate expected tables, row counts, null patterns, schema changes, and load outcomes.
-- **Operational observability:** Pipeline run logs and failure records make each load traceable from orchestration through table-level processing.
-- **Dimensional modeling:** Gold provides conformed dimensions and facts, including effective and expiry dates for changing customer attributes.
-
-## Data Model
+### Data Model
 
 ![DriveZA Gold star schema](architecture/DriveZA_ERD.png)
+The Gold model follows a rental-operations star schema. `FactRental` is the central business event and connects reporting activity to customer, vehicle, branch, employee, promotion, and date dimensions. The supporting fact tables for payments, maintenance, and incidents provide additional operational and financial views for analysis.
 
-The Gold model is a rental-operations star schema. `FactRental` is the central business event and connects reporting activity to customer, vehicle, branch, employee, promotion, and date dimensions. Payment, maintenance, and incident facts provide additional financial and operational views.
+### Semantic model
+
+To prepare for reporting, a semantic model is created with the relationships between the Gold tables and the measures needed for dashboards and analysis. The model is designed to expose a straightforward analytical layer that business users can query without needing to understand the underlying raw and curated data structures.
+
+![Semantic Model](screenshots/Semantic%20Model.png)
+The semantic model in Fabric maps the Gold warehouse tables into a reporting-friendly model, establishing relationships between facts and dimensions and exposing the structured analytics layer used by the reporting experience.
+
+#### Master Pipeline
+
+
+
+The full medallion workflow is orchestrated through a master pipeline that invokes Bronze ingestion, Silver transformation, Gold transformation, and the semantic model refresh. This pipeline is scheduled daily at 4:00 AM so the reporting layer is ready when business users begin their day. The schedule is paired with a failure alert that notifies the engineer when a run fails and includes the diagnostic details needed to investigate the issue.
+
+
+
+```mermaid
+flowchart TD
+    Start([PL_DRZ_RPT_Master starts])
+    BronzeAdmin[PL_Bronze_Admin]
+    BronzeCRM[PL_Bronze_Crm]
+    Silver[PL_Silver_Transform]
+    Gold[PL_Gold_Transform]
+    Semantic[Semantic model refresh]
+    End([Master pipeline complete])
+
+    Start --> BronzeAdmin
+    Start --> BronzeCRM
+    BronzeAdmin -->|Succeeded| Silver
+    BronzeCRM -->|Succeeded| Silver
+    Silver -->|Succeeded| Gold
+    Gold -->|Succeeded| Semantic
+    Semantic --> End
+```
+
+
+
+The master pipeline starts the Admin and CRM Bronze pipelines in parallel. `PL_Silver_Transform` begins only after both Bronze pipelines succeed, followed by `PL_Gold_Transform` and the transactional semantic model refresh. This dependency chain ensures that reporting is refreshed only after the source data has been ingested and the curated and warehouse layers have completed successfully.
+
+![Master pipeline failure alert](screenshots/Master%20Pipeline%20failure%20alert.png)
+The failure alert provides an early warning when the master pipeline does not complete successfully and includes diagnostic details to support troubleshooting.
+
+![Master pipeline failure alert details](screenshots/Master%20Pipeline%20failure%20alert(more%20details).png)
+
+
+The detailed failure alert gives the engineer the specific pipeline and run information needed to investigate the cause and resolve the issue quickly.
+
+> **Screenshot note:** The pipeline is currently named `PL_DRZ_RPT_Master`. The screenshots show its former name, `PL_DRZ_MRKT_Master`, because they were captured before the pipeline was renamed.
 
 ## Governance
 
 ### Built
 
-- Bronze, Silver, and Gold boundaries separate raw, curated, and reporting data.
-- Source metadata, pipeline control, run logs, failure records, and schema-change logs support traceability.
-- Business keys and transformation rules are managed through configuration tables.
-- Lakehouse and warehouse assets provide distinct processing and consumption boundaries.
-- Git integration enables version control and CI/CD collaboration:
+- Operational metadata tables record watermarks, pipeline status, row counts, failures, data-quality results, and schema changes for traceability.
+- Configuration tables centralize source mappings, active-table settings, business keys, watermarks, and approved value-normalization rules.
+- Git integration supports version control, CI/CD, and controlled promotion across three Fabric workspaces: `dev` for development, `test` for validation, and `prod` for the live reporting environment.
+
+The three-workspace setup separates authoring from validation and production consumption. The `dev` workspace uses one month of data for fast development and iteration, while `test` uses six months of data to evaluate the solution across a broader and more representative period. After validation, the solution is promoted to `prod`, where it processes the full available dataset for live reporting. This promotion path reduces the risk of untested pipeline, notebook, lakehouse, warehouse, and semantic-model changes reaching the live reporting environment.
 
 ![Fabric Git integration](screenshots/Git%20Integration.png)
-
-### Planned or Service-Managed
-
-- Microsoft Purview catalog registration and automated lineage across Fabric assets.
-- Classification and sensitivity labels for customer and employee data.
-- Least-privilege workspace and item access policies.
-- Certified semantic model, Fabric Data Agent, and Microsoft 365 Copilot configuration.
-
-Purview, Power BI, Data Agent, and Copilot settings are service-level configurations and are not stored as repository files.
 
 ## Results / Metrics
 
@@ -343,11 +375,16 @@ The business result is one traceable path from disconnected operational systems 
 
 ## Limitations & Future Improvements
 
+- **CSV configuration is suitable for a small proof of concept but not ideal for production control.** In Bronze, the pipeline reads table-processing rules from CSV configuration files. This keeps the example simple and easy to modify, but it introduces risks when configuration changes frequently or when several people maintain the files. CSV values are not strongly typed, and an accidental space or inconsistent value can change pipeline behavior without producing an obvious configuration error. For example, the CRM filter processes only rows where `is_active = 1`. If the file contains `1 ` with a trailing space, the table may be treated as inactive and skipped. A production implementation should store configuration and control data in governed Delta tables or a central warehouse schema, with typed columns, validation rules, controlled updates, and audit history. The CSV approach is retained here deliberately to demonstrate both the metadata-driven pattern and the operational limitations that should be addressed before production use.
 - Source systems and data are synthetic; production use would require real connections, credentials, networking, and operational SLAs.
+- **Schema evolution is handled passively in the current Bronze solution.** A direct source schema-evolution check was not set because the known notebook-based ODBC/JDBC connection in Fabric that is needed to check schema change in the source(SQL Server) using a notebook. The current process does not automatically compare, approve, and apply source-schema changes. When a source table changes, the CRM load can fail or raise an operational issue; the change must then be investigated, the Bronze schema or downstream logic must be updated manually, and the pipeline must be rerun. Although this approach protects the downstream layers from accepting an unreviewed structure, manual intervention can create extended downtime and additional operational cost.            A stronger production design would use a staging lakehouse or governed metadata schema to maintain an approved snapshot of each source table's structure, and where appropriate a controlled landing copy of the source data. A comparison notebook or validation step could compare the incoming structure with the approved snapshot, identify added, removed, or changed columns, and classify each change as compatible or breaking. Compatible additions could be applied automatically, while breaking changes could be isolated, logged, and routed for notification and approval before they reach Silver or Gold. This would preserve the safety of the passive approach while reducing manual recovery time and preventing uncontrolled schema changes from propagating through the platform.
+- **Failure alerting is not enabled by default.** The Silver transformation contains a failure-event hook, but `ENABLE_FAILURE_ALERTS` is set to `False` until the required Business Event schema and Activator configuration are provisioned. Production deployment should enable this path, connect it to an operational notification channel, and test alert delivery as part of the release process.
+- **Automated validation is not yet a release gate.** The notebooks perform operational data-quality checks, but the repository does not yet provide a complete automated suite for row-level reconciliation, duplicate detection, referential integrity, freshness, and semantic-model validation. These checks should run in `test` before promotion to `prod`, with documented thresholds and a clear failure policy.
+- **Replay and recovery controls are limited.** Watermarks and run logs support incremental processing, but production operations should add explicit checkpoint recovery, backfill procedures, late-arriving dimension and fact handling, and an immutable quarantine area for records that cannot be processed safely.
+- **Security and disaster recovery remain to be operationalized.** Production deployment should externalize connection details and secrets, apply least-privilege workspace and item permissions, document sensitive-data handling, and define backup, recovery-point, recovery-time, and continuity procedures.
 - Purview policies, sensitivity labels, access groups, Power BI reports, Data Agent, and Copilot settings are service-managed rather than stored here.
-- Automated unit, integration, and data-reconciliation tests should be added around each source and layer.
-- Future improvements include CI/CD validation, richer quality thresholds, SLA monitoring, late-arriving fact handling, and incremental refresh optimization.
 - The curated model provides a foundation for forecasting, anomaly detection, and other governed AI/ML workloads.
+
 
 ## How to Explore This Repo
 
@@ -364,34 +401,14 @@ The business result is one traceable path from disconnected operational systems 
 DriveZA-Holdings/
 ├── README.md
 ├── architecture/
-│   ├── Architecture Diagram.png
-│   ├── DriveZa Architecture.png
-│   ├── DriveZa Architecture.drawio.svg
-│   └── data-model-erd.svg
+│   └── Architecture diagrams and Gold data-model ERDs
 ├── docs/
-│   ├── data-sources.md
-│   ├── metadata-framework.md
-│   ├── governance.md
-│   ├── design-decisions.md
-│   └── limitations.md
+│   └── Data sources, metadata, governance, design decisions, and limitations
 ├── data/
-│   ├── README.md
 │   └── raw-landing/admin/
 │       ├── crm_branches.csv
 │       └── hr_staff.csv
-├── screenshots/
-│   ├── Bronze Config table.png
-│   ├── Bronze Lakehouse.png
-│   ├── Bronze Storage.png
-│   ├── crm config table.png
-│   ├── DriveZa Task FLow.png
-│   ├── gold pipeline.png
-│   ├── Pipeline Control.png
-│   ├── PL_Bronze_Admin.png
-│   ├── PL_Bronze_Admin(Inside ForEach).png
-│   ├── PL_Bronze_CRM.png
-│   ├── PL_Bronze_CRM(Inside For Each).png
-│   └── PL_Bronze_CRM(Inside Switch).png
+├── screenshots/              # Pipeline, lakehouse, warehouse, semantic-model, and Git evidence
 ├── Fabric/
 │   ├── Bronze/
 │   │   ├── Notebooks/

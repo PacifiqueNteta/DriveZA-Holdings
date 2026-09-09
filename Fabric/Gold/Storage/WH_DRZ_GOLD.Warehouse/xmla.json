@@ -14,7 +14,7 @@
     "tables": [
       {
         "name": "DimBranch",
-        "sourceLineageTag": "[Marketing].[DimBranch]",
+        "sourceLineageTag": "[Reporting].[DimBranch]",
         "columns": [
           {
             "name": "BranchKey",
@@ -169,7 +169,7 @@
               "type": "entity",
               "entityName": "DimBranch",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -182,7 +182,7 @@
       },
       {
         "name": "DimCustomer",
-        "sourceLineageTag": "[Marketing].[DimCustomer]",
+        "sourceLineageTag": "[Reporting].[DimCustomer]",
         "columns": [
           {
             "name": "CustomerKey",
@@ -467,7 +467,7 @@
               "type": "entity",
               "entityName": "DimCustomer",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -480,7 +480,7 @@
       },
       {
         "name": "DimDate",
-        "sourceLineageTag": "[Marketing].[DimDate]",
+        "sourceLineageTag": "[Reporting].[DimDate]",
         "columns": [
           {
             "name": "DateKey",
@@ -684,7 +684,7 @@
               "type": "entity",
               "entityName": "DimDate",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -697,7 +697,7 @@
       },
       {
         "name": "DimEmployees",
-        "sourceLineageTag": "[Marketing].[DimEmployees]",
+        "sourceLineageTag": "[Reporting].[DimEmployees]",
         "columns": [
           {
             "name": "EmployeeKey",
@@ -853,7 +853,7 @@
               "type": "entity",
               "entityName": "DimEmployees",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -866,7 +866,7 @@
       },
       {
         "name": "DimPromotion",
-        "sourceLineageTag": "[Marketing].[DimPromotion]",
+        "sourceLineageTag": "[Reporting].[DimPromotion]",
         "columns": [
           {
             "name": "PromotionKey",
@@ -1065,7 +1065,7 @@
               "type": "entity",
               "entityName": "DimPromotion",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -1078,7 +1078,7 @@
       },
       {
         "name": "DimVehicle",
-        "sourceLineageTag": "[Marketing].[DimVehicle]",
+        "sourceLineageTag": "[Reporting].[DimVehicle]",
         "columns": [
           {
             "name": "VehicleKey",
@@ -1337,7 +1337,7 @@
               "type": "entity",
               "entityName": "DimVehicle",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -1350,7 +1350,7 @@
       },
       {
         "name": "FactIncident",
-        "sourceLineageTag": "[Marketing].[FactIncident]",
+        "sourceLineageTag": "[Reporting].[FactIncident]",
         "columns": [
           {
             "name": "IncidentKey",
@@ -1520,7 +1520,7 @@
               "type": "entity",
               "entityName": "FactIncident",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -1533,7 +1533,7 @@
       },
       {
         "name": "FactMaintenance",
-        "sourceLineageTag": "[Marketing].[FactMaintenance]",
+        "sourceLineageTag": "[Reporting].[FactMaintenance]",
         "columns": [
           {
             "name": "MaintenanceKey",
@@ -1674,7 +1674,7 @@
               "type": "entity",
               "entityName": "FactMaintenance",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -1687,7 +1687,7 @@
       },
       {
         "name": "FactPayment",
-        "sourceLineageTag": "[Marketing].[FactPayment]",
+        "sourceLineageTag": "[Reporting].[FactPayment]",
         "columns": [
           {
             "name": "PaymentKey",
@@ -1814,7 +1814,7 @@
               "type": "entity",
               "entityName": "FactPayment",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],
@@ -1827,7 +1827,7 @@
       },
       {
         "name": "FactRental",
-        "sourceLineageTag": "[Marketing].[FactRental]",
+        "sourceLineageTag": "[Reporting].[FactRental]",
         "columns": [
           {
             "name": "RentalKey",
@@ -2129,7 +2129,7 @@
               "type": "entity",
               "entityName": "FactRental",
               "expressionSource": "DatabaseQuery",
-              "schemaName": "Marketing"
+              "schemaName": "Reporting"
             }
           }
         ],

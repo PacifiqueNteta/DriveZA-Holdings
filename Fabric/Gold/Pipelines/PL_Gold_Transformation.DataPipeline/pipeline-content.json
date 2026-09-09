@@ -4,7 +4,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadDimBranch]",
+          "storedProcedureName": "[Reporting].[uspLoadDimBranch]",
           "storedProcedureParameters": {
             "pipeline_run_id": {
               "value": {
@@ -44,7 +44,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadDimPromotion]",
+          "storedProcedureName": "[Reporting].[uspLoadDimPromotion]",
           "storedProcedureParameters": {
             "pipeline_run_id": {
               "value": {
@@ -91,7 +91,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadDimVehicle]",
+          "storedProcedureName": "[Reporting].[uspLoadDimVehicle]",
           "storedProcedureParameters": {
             "pipeline_run_id": {
               "value": {
@@ -138,7 +138,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadDimEmployees]",
+          "storedProcedureName": "[Reporting].[uspLoadDimEmployees]",
           "storedProcedureParameters": {
             "pipeline_name": {
               "value": "PL_Gold_Transform",
@@ -185,7 +185,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadFactRental]",
+          "storedProcedureName": "[Reporting].[uspLoadFactRental]",
           "storedProcedureParameters": {
             "pipeline_name": {
               "value": "PL_Gold_Transform",
@@ -232,7 +232,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadFactPayment]",
+          "storedProcedureName": "[Reporting].[uspLoadFactPayment]",
           "storedProcedureParameters": {
             "pipeline_name": {
               "value": "PL_Gold_Transform",
@@ -279,7 +279,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadFactIncident]",
+          "storedProcedureName": "[Reporting].[uspLoadFactIncident]",
           "storedProcedureParameters": {
             "pipeline_name": {
               "value": "PL_Gold_Transform",
@@ -326,7 +326,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadFactMaintenance]",
+          "storedProcedureName": "[Reporting].[uspLoadFactMaintenance]",
           "storedProcedureParameters": {
             "pipeline_name": {
               "value": "PL_Gold_Transform",
@@ -373,7 +373,7 @@
       {
         "type": "SqlServerStoredProcedure",
         "typeProperties": {
-          "storedProcedureName": "[Marketing].[uspLoadDimCustomer]",
+          "storedProcedureName": "[Reporting].[uspLoadDimCustomer]",
           "storedProcedureParameters": {
             "pipeline_name": {
               "value": "PL_Gold_Transform",
