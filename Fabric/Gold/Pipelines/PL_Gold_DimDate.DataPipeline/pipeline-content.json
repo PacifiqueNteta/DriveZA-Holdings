@@ -54,7 +54,7 @@
             "datasetSettings": {
               "type": "DataWarehouseTable",
               "typeProperties": {
-                "schema": "Marketing",
+                "schema": "Reporting",
                 "table": "DimDate"
               },
               "schema": [],
