@@ -18,6 +18,7 @@ DriveZA Holdings is a vehicle-rental company operating across nine provinces, mo
 
 The Fabric task flow connects administration and fleet/CRM ingestion to Bronze, Silver transformation, Gold transformation, and business-facing data visualization.
 
+
 ![DriveZA Fabric task flow](screenshots/DriveZa%20Task%20FLow.png)
 
 Fabric Data Factory orchestrates ingestion and transformation, OneLake stores Delta data, and `WH_DRZ_GOLD` presents a dimensional model for reporting. The three layers have deliberately separate responsibilities:
@@ -79,11 +80,23 @@ Fleet data is made available through the mirrored `DRIVEZA_FLEET` database for d
 ![Mirrored Database in workspace](screenshots/Mirrored%20Database%20Availed%20in%20the%20Workspace.png)
 `DRIVEZA_FLEET` mirrored database available in the Fabric workspace for fleet data access.
 
+
+<br>
+
+
 ![Mirrored Database detail](screenshots/Mirrored%20Database.png)
 Mirrored database details, including its connection and configuration information.
 
+<br>
+
+
 ![Bronze storage assets](screenshots/Bronze%20Storage.png)
 Bronze storage assets, including the lakehouse and mirrored database used by the ingestion layer.
+
+
+
+
+
 
 Before pipeline execution begins, the `NB_Bronze_Meta_Setup` notebook is run once to create the foundational `metadata` schema and the Bronze control tables used throughout ingestion and monitoring. This setup establishes the operational metadata layer for tracking source status, execution logs, and data-quality checks. The key objects created include `metadata.pipeline_control`, `metadata.pipeline_run_log`, and `metadata.data_quality`, along with the supporting view used for summarised quality reporting. This ensures each ingestion run has a consistent place to store watermarks, run outcomes, row counts, and operational diagnostics.
 
@@ -104,6 +117,10 @@ The CRM configuration table contains the following information:
 
 ![CRM configuration table](screenshots/crm%20config%20table.png)
 CRM configuration table that controls active status, source and destination names, load type, and watermark settings.
+
+<br><br>
+
+
 
 ```mermaid
 flowchart TD
@@ -215,7 +232,7 @@ The `ForEach_AdminFiles` scope applies the configured file-processing steps to e
 
 #### Bronze Data Quality Validation
 
-After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (**TridentNotebook** activity) discovers the available CRM, Admin, and mirrored fleet tables and validates their accessibility, row counts, column counts, duplicate keys, and null keys. Each result is appended to `metadata.data_quality`, providing a consolidated record of Bronze data quality for monitoring and investigation.
+After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (**Notebook** activity) discovers the available CRM, Admin, and mirrored fleet tables and validates their accessibility, row counts, column counts, duplicate keys, and null keys. Each result is appended to `metadata.data_quality`, providing a consolidated record of Bronze data quality for monitoring and investigation.
 
 
 ### Silver
@@ -225,7 +242,11 @@ After the CRM and Admin ingestion processes complete, `NB_Bronze_DataQuality` (*
 ![Silver configuration table](screenshots/Silver%20Config%20table.png)
 The Silver configuration table defines the business key, watermark column, and active status used to control each table's transformation.
 
+
+
 `NB_Silver_MetaSetup` (**Notebook** activity) creates the Silver metadata schema and its Delta tables, including `metadata.pipeline_control`, `metadata.pipeline_run_log`, `metadata.silver_config`, `metadata.data_quality`, and `metadata.table_maintenance`. It seeds the table configuration and value-normalization map, and creates the `metadata.data_quality_summary` materialized lake view for consolidated quality results. This is a one-time activity.
+
+
 
 Silver processing is orchestrated by `PL_Silver_Transform`, whose **Notebook** activity runs `NB_Silver_Transform`. The notebook first discovers CRM and Admin tables in `LH_DRZ_BRONZE` and fleet tables in the `DRIVEZA_FLEET` mirror. It then reads the last successful watermark from `metadata.pipeline_control`, table rules from `metadata.silver_config`, and configured value corrections from `metadata.value_normalization_map`.
 
@@ -233,50 +254,123 @@ For each configured active table, `NB_Silver_Transform` applies the following se
 
 1. Filters the source using the configured watermark when a previous successful watermark exists; otherwise, performs the initial full read.
 2. Drops technical columns and standardizes column names, trims string values, and converts configured null tokens to `NULL`.
-3. Normalizes phone-number values and applies configuration-driven value corrections, such as country-name fixes. While reviewing CRM customer data in Fabric, the `customers.country` field was found to contain inconsistent values such as `Germa` instead of `Germany` and `French` instead of `France`, even though `customers.nationality` already contained the correct values. This issue was traced back to source data entry errors and handled through a value-normalization lookup table. During this step, each invalid value is matched against the normalization map and replaced with the approved standard before the row is written to the Silver layer. Any future data-quality issue discovered in source is documented and added to the normalization map so the fix is consistently applied during Silver transformations.
+3. Normalizes phone-number values and applies configuration-driven value corrections, such as country-name fixes. While reviewing CRM customer data in Fabric, the `customers.country` field was found to contain inconsistent values such as `Germa` instead of `Germany` and `French` instead of `France`, even though `customers.nationality` already contained the correct values. This issue was traced back to source data entry errors and handled through a value-normalization lookup table. During this step, each invalid value is matched against the normalization map and replaced with the approved standard before the row is written to the Silver layer. The field `employees.phone` was also found to be of a numeric data type and only containing 9 digit (missing the 0 at the beginning). For this, a logic was implemented to make sure that all phone numbers have at least 10 digit, for those that only have 9 digit add a zero at the beginning and convert the number into a string type. Any future data-quality issue discovered in source is documented and added to the normalization map so the fix is consistently applied during Silver transformations.
+
+  - The phone number issue:
+
+![admn employees bronze phone values](screenshots/admn%20customer%20bronze%20-%20phone%20issue.png)
+The Bronze employee phone values were 9-digit numeric entries missing the leading zero, which would have caused inconsistent formatting and failed downstream joins.
+
+
+
+ - The country issue
+
+
+![CRM customer bronze country values](screenshots/crm%20customer%20bronze%20-%20country%20issue.png)
+The `customers.country` field included inconsistent values such as `Germa` and `French`, which were identified before the Silver correction step.
+
+
+
+
 
 ![CRM customer source country values](screenshots/crm%20customers%20country(source).png)
-The source CRM `customers.country` field included inconsistent values such as `Germa` and `French`, which were identified before the Silver correction step.
+`customers.country` in the source
 
-![CRM customer source distinct country values](screenshots/crm%20customers%20distinct%20country(from%20source).png)
-The distinct values from the source `customers.country` field revealed the data-quality issue and confirmed the need for a controlled normalization map.
+
+
+
 
 ![CRM customer source nationality values](screenshots/crm%20customers%20nationality(source).png)
 The source `customers.nationality` field provided the trusted reference values that were used to standardize the incorrect country entries.
+
+
+
+
+ ![Silver value-normalization table](screenshots/silver%20value%20normalization%20table.png)
+The value-normalization lookup table stores approved corrections for known source anomalies, such as inconsistent country labels so the transformation logic can apply the same standard every run.
+
+
+
+
+
 
 4. Validates that the configured business keys and watermark column exist, removes records with null business keys, and deduplicates records with a window ordered by the watermark column.
 5. Adds `silver_load_timestamp`, `record_created_at`, and `record_updated_at`, then calculates an `xxhash64` `record_hash` for change detection.
 6. Creates the Silver schema and table when needed. Existing tables are updated with Delta `MERGE`: rows with matching business keys are updated only when their hash changes, while new keys are inserted. Empty incremental batches skip the write.
 7. Writes per-table metrics to `metadata.pipeline_control` and appends execution details, including rows read, rows written, inserts, updates, errors, and duration, to `metadata.pipeline_run_log`. Missing configuration, inactive tables, and processing errors are isolated per table and logged without stopping the remaining tables; configured failure alerts are available but disabled by default.
 
+Result after Silver Transformation run:
+
+The control tables
+
+![Silver pipeline control table](screenshots/Silver%20Control%20table.png)
+The Silver control table records the run status, row counts, watermarks, and execution metadata for each table-level transformation cycle.
+
+![Silver Pipeline Run Log](screenshots/Silver%20Pipeline%20Run%20Log.png)
+The Silver pipeline run log captures the end-to-end outcome of each transformation, including duration, row metrics, and table-specific processing status.
 
 
-
-
+The curated tables
 
 ![Silver Lakehouse structure](screenshots/Silver%20LakeHouse.png)
 
 
-
-
 The Silver lakehouse after silver transform containing the curated tables produced from CRM, administration, and fleet sources.
 
-![Silver Lakehouse pipeline run log](screenshots/Silver%20Lakehouse%20%28Pipeline%20Run%20Log%29.png)
+![Silver phone cleanup example](screenshots/admn%20customer%20phone%20issue%20fixed%20in%20silver.png)
+After the Silver standardization step, the employee phone numbers are normalized to a consistent 10-digit string format suitable for reporting and matching.
 
 
-The Silver pipeline run log showing the result of the transformation, including table-level status, row counts, watermarks, and execution duration.
+![Silver country cleanup example](screenshots/crm%20customer%20country%20issue%20fixed%20in%20silver.png)
+The corrected Silver values align with the approved country names and remove the drift introduced by source data-entry variation.
 
 #### Quality Check and Table Optimization Pipelines
 
 Once the Silver layer has been populated, a dedicated quality pipeline, `PL_SolverBronze_QualityCheck`, can be run to validate the quality of the incoming and curated data. `PL_SolverBronze_QualityCheck` executes `NB_Bronze_QualityCheck` first and then `NB_Silver_QualityCheck`. Together, these notebooks verify source and Silver table accessibility, row and column counts, duplicate keys, and null-key patterns, and append the results to `metadata.data_quality`.
 
+![Silver quality summary view](screenshots/silver%20data%20quality%20materialised%20view.png)
+The materialized lake view consolidates Bronze and Silver data-quality checks into a single operational view for trend monitoring and issue triage.
+
+
+
 For maintenance and storage optimization, the `PL_SilverBronze_Optimizer` pipeline can also be run independently. It executes `NB_SilverBronze_Optimiser`, which records optimization results in `LH_DRZ_SILVER.metadata.table_maintenance`, skips mirrored tables because their storage is managed by Fabric mirroring, and ignores tables below the configured file-count threshold. Eligible Delta tables receive `OPTIMIZE`, optionally with configured `ZORDER`, and then `VACUUM` using the default seven-day retention unless a table-specific override has been approved.
+ 
+The optimization notebook evaluates each Delta table using `DESCRIBE DETAIL` to retrieve the number of files and total table size. While maintenance thresholds can be based on file count, table size, or a combination of both, this implementation uses the number of Delta files as the primary criterion because `OPTIMIZE` is intended to reduce small-file fragmentation. The current configuration uses:
+ 
+```python
+MIN_FILE_COUNT_FOR_MAINTENANCE = 3
+```
+ 
+This means that tables with fewer than three Delta files are skipped because compaction would provide little to no benefit. Once a table reaches the minimum threshold, the expected maintenance process is:
+ 
+1. Evaluate the current number of files and table size.
+2. Execute `OPTIMIZE` to compact small files into fewer larger files.
+3. Apply `ZORDER` when configured for commonly filtered or joined columns.
+4. Execute `VACUUM` to remove obsolete files older than the configured retention period.
+5. Log the maintenance outcome, execution duration, file counts, and storage metrics to `LH_DRZ_SILVER.metadata.table_maintenance`.
+
+
+ 
+The expected result is reduced file fragmentation, improved query performance, and more efficient Delta table storage management while avoiding unnecessary maintenance on very small tables.
+
+![PL_SilverBronze_Optimizer Table](screenshots/Maintenance%20Table.png)
+
+
+
 
 ### Gold
 
 The Gold layer contains the warehouse `WH_DRZ_GOLD` and the semantic model `DRZ_Reporting`, which are used to prepare the reporting-ready analytics layer. The design follows a star-schema pattern optimized for self-service reporting and analytical consumption. Warehouse stored procedures read from Silver and build the dimension and fact tables that power the reporting layer.
 
 Before the Gold warehouse load runs, `PL_Gold_DimDate` creates and loads the `DimDate` table. This date dimension is generated through the `NB_DateTable_Generation` notebook and includes attributes such as `FiscalYear`, `IsWeekend`, and `IsSAPublicHoliday`, which are essential for time-based analysis and operational insight. The date range starts on `2018-01-01` and ends on `2035-12-31`, and the resulting table is loaded into the Reporting schema in the Gold warehouse.
+
+```python
+# Date range
+start_date = date(2018, 1, 1)
+end_date = date(2035, 12, 31)
+```
+
+![PL_Gold_DimDate](screenshots/DimDate%20Pipeline.png)
 
 The Gold pipeline `PL_Gold_Transformation` orchestrates the final warehouse transformations by creating the dimensions and fact tables and establishing the relationships between them using surrogate keys rather than the source business keys. This approach preserves stable keys for reporting while supporting incremental loads and maintaining a cleaner analytical model. The warehouse contains six dimensions: `DimDate`, `DimCustomer`, `DimBranch`, `DimVehicle`, `DimEmployees`, and `DimPromotion`, and four facts: `FactRental`, `FactPayment`, `FactMaintenance`, and `FactIncident`. Customer history is tracked with effective and expiry dates to support accurate current-state reporting and historical analysis.
 
@@ -285,9 +379,30 @@ Surrogate keys are used in the Gold warehouse instead of the original source bus
 ![Gold transformation pipeline](screenshots/gold%20pipeline.png)
 The Gold transformation pipeline orchestrates the warehouse build by executing the stored procedures that load the reporting dimensions and facts and prepare the final analytical model.
 
+![Gold pipeline control table](screenshots/Gold%20Pipeline%20Control.png)
+
+
+The Gold pipeline control metadata captures the status, row counts, and execution context for each warehouse refresh, providing the operational traceability needed to monitor multi-table loads.
+
+![Gold reporting tables](screenshots/Gold%20Reporting%20Tables.png)
+
+
+The final reporting layer is organized around a small number of curated warehouse tables that expose the star schema to downstream analytics and visualisation workloads.
+
+
+![Gold reporting tables](screenshots/Gold%20Tables%20-%20Payment.png)
+
+
+![Gold reporting tables](screenshots/Gold%20Tables%20-%20Customer.png)
+
+![Gold reporting tables](screenshots/Gold%20Tables%20-%20Date.png)
+
 ### Data Model
 
 ![DriveZA Gold star schema](architecture/DriveZA_ERD.png)
+
+
+
 The Gold model follows a rental-operations star schema. `FactRental` is the central business event and connects reporting activity to customer, vehicle, branch, employee, promotion, and date dimensions. The supporting fact tables for payments, maintenance, and incidents provide additional operational and financial views for analysis.
 
 ### Semantic model
@@ -295,16 +410,21 @@ The Gold model follows a rental-operations star schema. `FactRental` is the cent
 To prepare for reporting, a semantic model is created with the relationships between the Gold tables and the measures needed for dashboards and analysis. The model is designed to expose a straightforward analytical layer that business users can query without needing to understand the underlying raw and curated data structures.
 
 ![Semantic Model](screenshots/Semantic%20Model.png)
+
 The semantic model in Fabric maps the Gold warehouse tables into a reporting-friendly model, establishing relationships between facts and dimensions and exposing the structured analytics layer used by the reporting experience.
+
+![Semantic Model Relationships](screenshots/Semantic%20Model%20%28Relationships%29.png)
+
+The model relationship view confirms the intended join paths between the fact tables and the reporting dimensions, ensuring that business users can explore the data without exposing the raw ingestion model.
 
 #### Master Pipeline
 
-
-
 The full medallion workflow is orchestrated through a master pipeline that invokes Bronze ingestion, Silver transformation, Gold transformation, and the semantic model refresh. This pipeline is scheduled daily at 4:00 AM so the reporting layer is ready when business users begin their day. The schedule is paired with a failure alert that notifies the engineer when a run fails and includes the diagnostic details needed to investigate the issue.
 
+![Master pipeline overview](screenshots/Master%20Pipeline.png)
 
-
+<br><br><br><br><br><br><br><br><br>
+The master pipeline orchestrates the Bronze, Silver, and Gold stages in dependency order before the semantic model refresh runs.
 ```mermaid
 flowchart TD
     Start([PL_DRZ_RPT_Master starts])
@@ -333,6 +453,7 @@ The failure alert provides an early warning when the master pipeline does not co
 
 ![Master pipeline failure alert details](screenshots/Master%20Pipeline%20failure%20alert(more%20details).png)
 
+<br><br><br><br><br><br><br><br><br>
 
 The detailed failure alert gives the engineer the specific pipeline and run information needed to investigate the cause and resolve the issue quickly.
 
